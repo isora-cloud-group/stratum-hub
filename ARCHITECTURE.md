@@ -104,13 +104,19 @@ Esto garantiza compatibilidad transparente para controladores cliente de Node.js
 El generador criptografico integrado en `stratum-cli` erradica el riesgo de colision de claves o generacion determinista en entornos virtualizados. El algoritmo combina cuatro fuentes fisicas e independientes:
 
 ```mermaid
-flowchart LR
-    S1["🎲 CSPRNG del Kernel<br/><code>os.urandom</code> / <code>secrets</code>"] --> SPONGE["🧽 <b>Esponja Criptográfica</b><br/>Compresión HMAC-SHA512"]
-    S2["⏱️ Micro-Jitter CPU<br/><code>time.perf_counter_ns()</code>"] --> SPONGE
-    S3["🧠 Offset de Memoria ASLR<br/>Direcciones de Heap dinámicas"] --> SPONGE
-    S4["🌡️ Fluctuaciones Térmicas<br/>Contador diferencial de ciclos"] --> SPONGE
-    
-    SPONGE --> OUT["🔑 <b>Secreto de Alta Densidad</b><br/>24 caracteres alfanuméricos<br/><i>(Cero colisión en virtualización)</i>"]
+flowchart TD
+    subgraph Fuentes ["Fuentes de Entropia Fisica"]
+        S1["CSPRNG Kernel (os.urandom)"]
+        S2["Micro-Jitter CPU (time.perf_counter_ns)"]
+        S3["Offset Memoria ASLR (Heap dinamico)"]
+        S4["Fluctuaciones Termicas (Ciclos diferencial)"]
+    end
+
+    SPONGE["Esponja Criptografica<br/>Compresion HMAC-SHA512"]
+    OUT["Secreto de Alta Densidad<br/>24 caracteres (Sin colision)"]
+
+    Fuentes --> SPONGE
+    SPONGE --> OUT
 ```
 
 1. CSPRNG nativo del sistema operativo (`os.urandom` / `secrets`).
@@ -123,10 +129,10 @@ Las rutas perimetrales generadas dinamicamente para cada inquilino se gestionan 
 
 ```mermaid
 flowchart TD
-    G1["1. Generar Virtual Host Nginx<br/><i>Asignación upstream dinámica</i>"] --> T1{"2. Prueba Sintáctica Aislada<br/><code>docker exec ... nginx -t</code>"}
+    G1["1. Generar VHost Nginx<br/>Upstream dinamico"] --> T1{"2. Prueba Sintactica<br/>nginx -t"}
     
-    T1 -->|"Sintaxis Válida (Exit 0) ✅"| RELOAD["3. Recarga en Caliente Atómica<br/><code>docker exec ... nginx -s reload</code><br/><b>Cero downtime de conexiones</b>"]
-    T1 -->|"Error Detectado (Exit > 0) ❌"| ROLLBACK["4. Rollback Inmediato<br/>Restauración de archivo previo<br/><b>Sin impacto en el servicio</b>"]
+    T1 -->|"Exit 0 (Valido)"| RELOAD["3. Recarga Atomica<br/>nginx -s reload (Cero Downtime)"]
+    T1 -->|"Exit > 0 (Error)"| ROLLBACK["4. Rollback Inmediato<br/>Restaura version previa"]
 ```
 
 1. Generacion del bloque de configuracion Nginx asignando el upstream a variables en tiempo de ejecucion.

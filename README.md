@@ -52,34 +52,30 @@
 
 ## 2. 🧭 Árbol de Decisión: ¿Por Dónde Empiezo?
 
-Utiliza este diagrama interactivo de decisión para orientarte e identificar inmediatamente el repositorio exacto que requieres según tu objetivo:
+Utiliza este diagrama para orientarte según el objetivo que deseas cumplir:
 
 ```mermaid
 flowchart TD
-    START(["🎯 ¿Qué deseas lograr en la plataforma Stratum?"])
+    START(["🎯 ¿Qué deseas construir o desplegar?"])
     
-    START -->|"1. Infraestructura Base"| CORE["🏛️ stratum-core<br/><b>Tier 1: Base del Servidor</b><br/>• Red DMZ perimetral<br/>• Túneles Cloudflare Ingress<br/>• Persistencia ciega L4 (PostgreSQL/Mongo)"]
-    START -->|"2. Administrar & Automatizar"| CLI["⚡ stratum-cli<br/><b>Plano de Control CLI</b><br/>• Orquestación sin dependencias<br/>• Aprovisionamiento determinista<br/>• Comandos: org create, db create, doctor"]
-    START -->|"3. Conocer Plantilla de Inquilino"| ORG["🛡️ stratum-org<br/><b>Tier 2: Isla de Organización</b><br/>• Router Nginx frontal dual-homed<br/>• Red interna privada blindada<br/>• Redis 7 soberano local dedicado"]
-    START -->|"4. Desplegar una Aplicación"| APPS{"📦 Selecciona el Stack<br/>(Tier 3 Workloads)"}
+    START -->|"1. Infraestructura Base"| CORE["🏛️ stratum-core<br/>Base del Host & Persistencia"]
+    START -->|"2. Gestión & Automatización"| CLI["⚡ stratum-cli<br/>Plano de Control CLI"]
+    START -->|"3. Isla de Organización"| ORG["🛡️ stratum-org<br/>Router Dual-Homed & Redis"]
+    START -->|"4. Aplicaciones de Negocio"| APPS{"📦 Tier 3 Workloads"}
     
-    APPS -->|"Python"| W_PY["stratum-python<br/>FastAPI / Django / Celery"]
-    APPS -->|"Node.js"| W_JS["stratum-node<br/>NestJS / Express / TypeScript"]
-    APPS -->|"Java"| W_JV["stratum-spring<br/>Spring Boot 3 / Java 21 LTS"]
-    APPS -->|"PHP"| W_PHP["stratum-laravel<br/>Laravel 11/12 / PHP 8.4"]
-    APPS -->|"LaTeX"| W_TEX["overleaf-stratum<br/>TeX Live 2026 Scheme-Full"]
-    APPS -->|"Cloud"| W_NC["stratum-nextcloud<br/>Almacenamiento Soberano"]
-
-    click CORE "https://github.com/isora-cloud-group/stratum-core" "Ir al repositorio stratum-core"
-    click CLI "https://github.com/isora-cloud-group/stratum-cli" "Ir al repositorio stratum-cli"
-    click ORG "https://github.com/isora-cloud-group/stratum-org" "Ir al repositorio stratum-org"
-    click W_PY "https://github.com/isora-cloud-group/stratum-python" "Ir al repositorio stratum-python"
-    click W_JS "https://github.com/isora-cloud-group/stratum-node" "Ir al repositorio stratum-node"
-    click W_JV "https://github.com/isora-cloud-group/stratum-spring" "Ir al repositorio stratum-spring"
-    click W_PHP "https://github.com/isora-cloud-group/stratum-laravel" "Ir al repositorio stratum-laravel"
-    click W_TEX "https://github.com/isora-cloud-group/overleaf-stratum" "Ir al repositorio overleaf-stratum"
-    click W_NC "https://github.com/isora-cloud-group/stratum-nextcloud" "Ir al repositorio stratum-nextcloud"
+    APPS -->|"Python"| W_PY["stratum-python"]
+    APPS -->|"Node.js"| W_JS["stratum-node"]
+    APPS -->|"Java"| W_JV["stratum-spring"]
+    APPS -->|"PHP"| W_PHP["stratum-laravel"]
+    APPS -->|"LaTeX"| W_TEX["overleaf-stratum"]
+    APPS -->|"Nube"| W_NC["stratum-nextcloud"]
 ```
+
+### Guía de Enlaces Directos por Caso de Uso:
+* 🏛️ **[stratum-core](https://github.com/isora-cloud-group/stratum-core):** Despliegue de red DMZ perimetral, túneles Cloudflare y clúster central de persistencia (PostgreSQL 16 / MongoDB 7).
+* ⚡ **[stratum-cli](https://github.com/isora-cloud-group/stratum-cli):** Orquestador administrativo autónomo en Python (`stratum org create`, `stratum db create`, `stratum doctor`).
+* 🛡️ **[stratum-org](https://github.com/isora-cloud-group/stratum-org):** Plantilla de aislamiento soberano de organización con enrutador frontal y Redis 7 local dedicado.
+* 📦 **Cargas de Trabajo (Tier 3):** [Python](https://github.com/isora-cloud-group/stratum-python) · [Node.js](https://github.com/isora-cloud-group/stratum-node) · [Java/Spring](https://github.com/isora-cloud-group/stratum-spring) · [PHP/Laravel](https://github.com/isora-cloud-group/stratum-laravel) · [LaTeX/Overleaf](https://github.com/isora-cloud-group/overleaf-stratum) · [Nube/Nextcloud](https://github.com/isora-cloud-group/stratum-nextcloud).
 
 ---
 
@@ -87,55 +83,49 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    EXT["🌐 Clientes & Tráfico Externo"] -->|"Túnel Cifrado TLS Saliente"| T0["Tier 0: Ingress Perimetral (Cloudflare Zero Trust)"]
+    EXT["🌐 Clientes Externos"] -->|"Túnel TLS Saliente"| T0["Tier 0: Cloudflare Ingress"]
     
     subgraph CorePlatform ["Tier 1: Plataforma Base (stratum-core)"]
-        DMZ["Red DMZ Perimetral: stratum_dmz"]
-        ANCHOR["Centinela DMZ: stratum-dmz-anchor (UID 65534)"]
-        L4PROXY["Proxy L4 TCP Stream: stratum-database-nginx"]
+        DMZ["Red stratum_dmz"]
+        ANCHOR["Centinela DMZ"]
+        L4PROXY["Proxy L4 Stream (Nginx)"]
         
-        subgraph BlindDataTier ["Red Ciega Interna: stratum_database_internal (internal: true)"]
-            PG["PostgreSQL 16 Engine"]
-            MONGO["MongoDB 7.0 ReplicaSet"]
+        subgraph BlindDataTier ["Red Ciega (internal: true)"]
+            PG["PostgreSQL 16"]
+            MONGO["MongoDB 7.0"]
         end
         
         DMZ --> ANCHOR
         DMZ --> L4PROXY
-        L4PROXY -->|"Mediación TCP Interna"| PG
-        L4PROXY -->|"Mediación TCP Interna"| MONGO
+        L4PROXY -->|"TCP"| PG
+        L4PROXY -->|"TCP"| MONGO
     end
 
-    T0 -->|"Tráfico L7 Desencapsulado"| DMZ
+    T0 -->|"Tráfico L7"| DMZ
 
-    subgraph OrgA ["Tier 2: Isla Inquilino A (stratum-org-cliente-a)"]
-        ROUTER_A["Router Nginx Frontal A (Dual-Homed)"]
-        REDIS_A["Redis 7 Soberano A (Memoria Aislada)"]
-        subgraph WorkloadsA ["Tier 3: Cargas de Trabajo (A)"]
-            W_A1["FastAPI / Django (stratum-python)"]
-            W_A2["Celery Worker"]
-        end
+    subgraph OrgA ["Tier 2: Isla Inquilino A"]
+        ROUTER_A["Router Nginx A"]
+        REDIS_A["Redis 7 Soberano"]
+        W_A["Tier 3: Workloads A<br/>(FastAPI / Celery)"]
+        
         ROUTER_A --> REDIS_A
-        ROUTER_A --> W_A1
-        ROUTER_A --> W_A2
+        ROUTER_A --> W_A
     end
 
-    subgraph OrgB ["Tier 2: Isla Inquilino B (stratum-org-cliente-b)"]
-        ROUTER_B["Router Nginx Frontal B (Dual-Homed)"]
-        REDIS_B["Redis 7 Soberano B (Memoria Aislada)"]
-        subgraph WorkloadsB ["Tier 3: Cargas de Trabajo (B)"]
-            W_B1["Laravel 12 / PHP 8.4 (stratum-laravel)"]
-            W_B2["Spring Boot 3 / Java 21 (stratum-spring)"]
-        end
+    subgraph OrgB ["Tier 2: Isla Inquilino B"]
+        ROUTER_B["Router Nginx B"]
+        REDIS_B["Redis 7 Soberano"]
+        W_B["Tier 3: Workloads B<br/>(Laravel / Spring)"]
+        
         ROUTER_B --> REDIS_B
-        ROUTER_B --> W_B1
-        ROUTER_B --> W_B2
+        ROUTER_B --> W_B
     end
 
-    DMZ -->|"Enrutamiento Perimetral L7"| ROUTER_A
-    DMZ -->|"Enrutamiento Perimetral L7"| ROUTER_B
+    DMZ -->|"Enrutamiento L7"| ROUTER_A
+    DMZ -->|"Enrutamiento L7"| ROUTER_B
 
-    ROUTER_A -.->|"Split-Horizon L4 Stream"| L4PROXY
-    ROUTER_B -.->|"Split-Horizon L4 Stream"| L4PROXY
+    ROUTER_A -.->|"Split-Horizon L4"| L4PROXY
+    ROUTER_B -.->|"Split-Horizon L4"| L4PROXY
 ```
 
 ---
@@ -164,15 +154,13 @@ Todos los módulos de la suite se coordinan institucionalmente bajo la organizac
 La arquitectura de Stratum formaliza cuatro Registros de Decisión Arquitectónica (*Architectural Decision Records*):
 
 ```mermaid
-flowchart LR
-    ADR1["ADR-0001<br/><b>Islas Topológicas</b><br/>Redes privadas internal: true"]
-    ADR2["ADR-0002<br/><b>Proxy L4 TCP Stream</b><br/>Mediación ciega en persistencia"]
-    ADR3["ADR-0003<br/><b>Redis Soberano Local</b><br/>Memoria dedicada por inquilino"]
-    ADR4["ADR-0004<br/><b>Túneles de Borde</b><br/>Zero host ports expuestos"]
+flowchart TD
+    ADR1["<b>ADR-0001: Islas Topológicas</b><br/>Redes internas privadas (internal: true)"]
+    ADR2["<b>ADR-0002: Proxy L4 TCP Stream</b><br/>Mediación ciega de base de datos"]
+    ADR3["<b>ADR-0003: Redis Soberano Local</b><br/>Instancia dedicada por inquilino"]
+    ADR4["<b>ADR-0004: Túneles de Borde</b><br/>Zero Host Ports (0.0.0.0 bloqueado)"]
 
-    ADR1 --> ADR2
-    ADR2 --> ADR3
-    ADR3 --> ADR4
+    ADR1 --> ADR2 --> ADR3 --> ADR4
 ```
 
 1. **ADR-0001 (Aislamiento por Islas Topológicas frente a Puentes Planos):** Cada inquilino opera sobre una red puente virtual dedicada `stratum_${TENANT_ORG}_internal` con la directiva `internal: true`. Las cargas de trabajo no tienen interfaz en la DMZ ni publican puertos en el host, logrando aislamiento matemático en espacios de nombres de red (*network namespaces*).
@@ -214,22 +202,22 @@ Todos los componentes del ecosistema **Stratum** se articulan bajo una estricta 
 
 ```mermaid
 flowchart TD
-    HUB["🌐 <b>stratum-hub</b><br/><i>Directorio Central & Especificación Maestra</i>"]
-    
-    HUB -->|"Gobierna & Documenta"| CLI["⚡ <b>stratum-cli</b><br/><i>Plano de Control Administrativo (Python stdlib)</i>"]
-    
-    CLI -->|"1. Despliega Base"| CORE["🏛️ <b>stratum-core (Tier 1)</b><br/><i>DMZ + Proxy L4 Stream + Red Ciega BD</i>"]
-    CLI -->|"2. Aprovisiona Isla"| ORG["🛡️ <b>stratum-org (Tier 2)</b><br/><i>Router Nginx Dual-Homed + Redis 7 Soberano</i>"]
-    CLI -->|"3. Conecta Cargas"| T3["📦 <b>Tier 3 Cargas de Trabajo</b><br/><i>Python, Node.js, Spring, Laravel, Overleaf, Nextcloud</i>"]
-    
-    T3 -.->|"Split-Horizon TCP Stream"| ORG
-    ORG -.->|"Mediación L4 via DMZ"| CORE
+    HUB["🌐 <b>stratum-hub</b><br/>Directorio Central & Especificación"]
+    CLI["⚡ <b>stratum-cli</b><br/>Plano de Control Administrativo"]
+    CORE["🏛️ <b>stratum-core (Tier 1)</b><br/>DMZ & Persistencia L4"]
+    ORG["🛡️ <b>stratum-org (Tier 2)</b><br/>Router Frontal & Redis Local"]
+    T3["📦 <b>Tier 3: Workloads</b><br/>Aplicaciones de Inquilino"]
 
-    click HUB "https://github.com/isora-cloud-group/stratum-hub" "Ver stratum-hub"
-    click CLI "https://github.com/isora-cloud-group/stratum-cli" "Ver stratum-cli"
-    click CORE "https://github.com/isora-cloud-group/stratum-core" "Ver stratum-core"
-    click ORG "https://github.com/isora-cloud-group/stratum-org" "Ver stratum-org"
+    HUB --> CLI
+    CLI --> CORE
+    CLI --> ORG
+    CLI --> T3
+
+    T3 -.->|"Split-Horizon"| ORG
+    ORG -.->|"Proxy L4"| CORE
 ```
+
+* 🌐 [stratum-hub](https://github.com/isora-cloud-group/stratum-hub) · ⚡ [stratum-cli](https://github.com/isora-cloud-group/stratum-cli) · 🏛️ [stratum-core](https://github.com/isora-cloud-group/stratum-core) · 🛡️ [stratum-org](https://github.com/isora-cloud-group/stratum-org)
 
 ---
 

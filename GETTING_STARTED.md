@@ -3,12 +3,20 @@
 > Procedimiento paso a paso para desplegar y operar la arquitectura **Stratum Sovereign Multi-Tenant** en servidores Linux bare-metal o instancias dedicadas.
 
 ```mermaid
-flowchart LR
-    F1["<b>Fase 1</b><br/>Pre-requisitos Host<br/><i>Kernel 5.15+ & Docker</i>"] --> F2["<b>Fase 2</b><br/>Stratum Core<br/><i>DMZ & Proxy L4</i>"]
-    F2 --> F3["<b>Fase 3</b><br/>Stratum CLI<br/><i>Control Plane Nativo</i>"]
-    F3 --> F4["<b>Fase 4</b><br/>Stratum Org<br/><i>Isla Inquilino & Redis</i>"]
-    F4 --> F5["<b>Fase 5</b><br/>Workloads & Auditoría<br/><i>Tier 3 & Health Check</i>"]
+flowchart TD
+    F1["1. Host y Requisitos<br/>Linux 64-bit y Docker Engine"] --> F2["2. Stratum Core<br/>Subred DMZ y Proxy L4"]
+    F2 --> F3["3. Stratum CLI<br/>Plano de Control Nativo"]
+    F3 --> F4["4. Stratum Org<br/>Isla Inquilino y Redis Local"]
+    F4 --> F5["5. Tier 3 Workloads<br/>Aplicaciones y Auditoria"]
 ```
+
+Acceso rapido por etapa:
+* [Requisitos Previos del Servidor Host](#1-requisitos-previos-del-servidor-host)
+* [Fase 1: Despliegue de la Plataforma Base (Stratum Core)](#2-fase-1-despliegue-de-la-plataforma-base-stratum-core)
+* [Fase 2: Configuracion del Plano de Control (Stratum CLI)](#3-fase-2-configuracion-del-plano-de-control-stratum-cli)
+* [Fase 3: Aprovisionamiento de una Isla de Organizacion (Stratum Org)](#4-fase-3-aprovisionamiento-de-una-isla-de-organizacion-stratum-org)
+* [Fase 4: Despliegue de Cargas de Trabajo (Tier 3 Workloads)](#5-fase-4-despliegue-de-cargas-de-trabajo-tier-3-workloads)
+* [Fase 5: Verificacion y Auditoria de Aislamiento](#6-fase-5-verificacion-y-auditoria-de-aislamiento)
 
 ---
 
