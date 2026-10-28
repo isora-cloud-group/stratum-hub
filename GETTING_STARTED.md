@@ -1,95 +1,153 @@
-# Guía de Inicio Rápido: Despliegue de Stratum
-> **Paso a Paso para Operadores y Administradores de Sistemas**
+# Guia de Operacion y Despliegue: Stratum Platform
 
-Esta guía te llevará desde un servidor limpio con Docker instalado hasta el despliegue de una organización multi-inquilino con una carga de trabajo en ejecución.
-
----
-
-## Prerrequisitos
-Asegúrate de contar con:
-1. Servidor Linux con Docker Engine 24+ y Docker Compose v2.
-2. Python 3.10+ instalado en el host (para el CLI de administración).
-3. Acceso a una cuenta de Cloudflare Zero Trust (o túnel de borde equivalente).
+> Procedimiento paso a paso para desplegar y operar la arquitectura **Stratum Sovereign Multi-Tenant** en servidores Linux bare-metal o instancias dedicadas.
 
 ---
 
-## Paso 1: Clonar y Desplegar `stratum-core`
+## 1. Requisitos Previos del Servidor Host
 
-El núcleo de la plataforma debe levantarse antes que cualquier organización.
+Antes de iniciar la instalacion, asegurese de que el host cumple con los requerimientos minimos:
 
+* **Sistema Operativo:** Linux de 64 bits (Debian 12+, Ubuntu 22.04 LTS / 24.04 LTS, Rocky Linux 9+).
+* **Motor de Contenedores:** Docker Engine 24.0+ y Docker Compose Plugin v2.20+.
+* **Entorno de Administracion:** Python 3.10+ (requerido unicamente para ejecutar `stratum-cli`).
+* **Kernel & Red:** Soporte para cgroups v2, modulo `bridge` activo y directivas `net.ipv4.ip_forward=1`.
+* **Regla Fundamental:** Cero servicios escuchando en los puertos publicos 80, 443 o puertos de base de datos directamente sobre las interfaces fisicas del servidor.
+
+---
+
+## 2. Fase 1: Despliegue de la Plataforma Base (Stratum Core)
+
+La infraestructura perimetral y el clúster de persistencia residen en el repositorio [`stratum-core`](https://github.com/isora-cloud-group/stratum-core).
+
+### 2.1. Clonacion y Estructura
 ```bash
-git clone https://github.com/sandra-puerto/stratum-core.git
-cd stratum-core
+git clone https://github.com/isora-cloud-group/stratum-core.git /opt/stratum-core
+cd /opt/stratum-core
+```
 
-# 1.1 Iniciar la red DMZ y el contenedor ancla
-cd dmz
+### 2.2. Inicializar la Red DMZ y Centinela
+La red `stratum_dmz` sirve como canal intermedio de conexion entre el gateway exterior y los routers frontales de cada inquilino.
+```bash
+cd /opt/stratum-core/dmz
 docker compose up -d
+```
+Verifique que el contenedor `stratum-dmz-anchor` se encuentre activo bajo el usuario no root `nobody`:
+```bash
+docker compose ps
+```
 
-# 1.2 Iniciar el clúster central de base de datos y proxy L4
-cd ../database
+### 2.3. Inicializar la Capa de Persistencia y Proxy L4
+El subsistema de persistencia (`database/`) levanta PostgreSQL 16 y MongoDB 7.0 sobre la red ciega `stratum_database_internal`, exponiendo unicamente los puertos virtuales hacia la DMZ mediante el proxy TCP Stream de Nginx.
+```bash
+cd /opt/stratum-core/database
 cp .env.example .env
-# Configura las contraseñas maestras de Postgres y MongoDB en .env
+# Configure contraseñas maestras y variables administrativas
 docker compose up -d
+```
 
-# 1.3 Iniciar el gateway de entrada
-cd ../gateway
-cp .env.example .env
-# Configura tu token de Cloudflare Tunnel
-docker compose up -d
+Verifique que la red interna sea estrictamente ciega (`internal: true`):
+```bash
+docker network inspect stratum_database_internal --format '{{.Internal}}'
+# Salida esperada: true
 ```
 
 ---
 
-## Paso 2: Instalar y Configurar `stratum-cli`
+## 3. Fase 2: Configuracion del Plano de Control (Stratum CLI)
 
-`stratum-cli` no requiere dependencias externas; funciona directamente con la biblioteca estándar de Python:
+[`stratum-cli`](https://github.com/isora-cloud-group/stratum-cli) no requiere dependencias de terceros; funciona de forma nativa utilizando la biblioteca estandar de Python.
 
+### 3.1. Instalacion Local
 ```bash
-git clone https://github.com/sandra-puerto/stratum-cli.git
-cd stratum-cli
+git clone https://github.com/isora-cloud-group/stratum-cli.git /opt/stratum-cli
+cd /opt/stratum-cli
+chmod +x install.sh
+sudo ./install.sh
+```
 
-# Instalar enlace simbólico global
-./install.sh
-
-# Verificar salud general de la plataforma
+### 3.2. Diagnostico del Sistema (Health Check)
+Ejecute el comando de diagnostico para comprobar que los demonios, subredes e invariantes de seguridad estan activos:
+```bash
 stratum doctor
 ```
 
 ---
 
-## Paso 3: Aprovisionar una Nueva Organización (Tenant)
+## 4. Fase 3: Aprovisionamiento de una Isla de Organizacion (Stratum Org)
 
-Crea la frontera aislada para un nuevo cliente (por ejemplo, `acme-corp`):
+Cada cliente u organizacion opera dentro de su propio perímetro sovereign materializado por [`stratum-org`](https://github.com/isora-cloud-group/stratum-org).
 
+### 4.1. Crear una Organizacion via CLI
+Para aprovisionar la organizacion `empresa-alfa`:
 ```bash
-# Crear la organización
-stratum org create acme-corp
-
-# Aprovisionar su base de datos PostgreSQL aislada
-stratum db create acme-corp --type postgres
+stratum org create empresa-alfa
 ```
+Este comando ejecuta automaticamente:
+1. Validacion del identificador contra la expresion determinista `^[a-z0-9]+(?:-[a-z0-9]+)*$`.
+2. Creacion de la subred privada `stratum_empresa-alfa_internal` (`internal: true`).
+3. Generacion de certificados internos y configuracion de Nginx con reenvio split-horizon.
+4. Generacion de secretos criptograficos mediante la esponja de entropia fisica HMAC-SHA512.
+5. Despliegue del contenedor Redis 7 local dedicado y el router frontal dual-homed.
 
-Esto generará la configuración de `stratum-org` con:
-* Red privada `stratum_acme-corp_internal`.
-* Enrutador frontal Nginx con proxy split-horizon.
-* Contenedor Redis 7 soberano local.
+### 4.2. Aprovisionar Base de Datos para la Organizacion
+```bash
+stratum db create empresa-alfa --type postgres
+```
+Este comando crea el esquema y usuario restringido en PostgreSQL central, concediendo acceso unicamente a la base de datos `db_empresa_alfa` con minimos privilegios.
 
 ---
 
-## Paso 4: Desplegar una Carga de Trabajo (Workload)
+## 5. Fase 4: Despliegue de Cargas de Trabajo (Tier 3 Workloads)
 
-Selecciona la plantilla requerida (ej. `stratum-python` o `stratum-laravel`):
+Las aplicaciones cliente se despliegan utilizando los repositorios de plantilla correspondientes al lenguaje deseado.
 
+### 5.1. Ejemplo: Despliegue de Backend Python (FastAPI)
 ```bash
-git clone https://github.com/sandra-puerto/stratum-python.git
-cd stratum-python
-
-# Copiar variables de entorno configurando TENANT_ORG=acme-corp
+git clone https://github.com/isora-cloud-group/stratum-python.git /opt/workloads/empresa-alfa-api
+cd /opt/workloads/empresa-alfa-api
 cp .env.example .env
-nano .env
-
-# Construir y levantar
-docker compose up -d
 ```
 
-¡Listo! La aplicación estará corriendo dentro de la red interna de `acme-corp`, comunicándose de forma transparente con la base de datos central a través de `stratum-database-nginx` y sin exponer un solo puerto al host.
+Configure el archivo `.env` vinculando la carga a la organizacion:
+```env
+TENANT_ORG=empresa-alfa
+APP_PORT=8000
+DB_HOST=stratum-database-nginx
+DB_PORT=5432
+DB_NAME=db_empresa_alfa
+DB_USER=usr_empresa_alfa
+DB_PASSWORD=<secreto_generado_por_cli>
+REDIS_HOST=redis
+REDIS_PORT=6379
+```
+
+Inicie el servicio:
+```bash
+docker compose up -d --build
+```
+
+---
+
+## 6. Fase 5: Verificacion y Auditoria de Aislamiento
+
+Compruebe que el aislamiento de red por diseno es efectivo:
+
+1. **Intento de Acceso a Internet desde la Base de Datos (Debe Fallar):**
+   ```bash
+   docker exec -it stratum-database-core-postgres ping -c 2 1.1.1.1 || echo "Aislamiento verificado: Red ciega sin egress"
+   ```
+
+2. **Intento de Comunicacion Inter-Tenant (Debe Fallar):**
+   Intentar conectarse desde la carga de trabajo de `empresa-alfa` hacia la red de `empresa-beta`:
+   ```bash
+   docker exec -it stratum-empresa-alfa-api ping -c 2 stratum-org-empresa-beta-nginx || echo "Aislamiento verificado: Imposible resolver o alcanzar inquilino adyacente"
+   ```
+
+3. **Verificacion de Puertos en el Host:**
+   Compruebe con `ss` o `netstat` que el host fisico no tiene puertos de servicio abiertos:
+   ```bash
+   sudo ss -tulpn | grep -E ':(5432|27017|6379|8000|8080)'
+   # La salida debe ser completamente nula.
+   ```
+

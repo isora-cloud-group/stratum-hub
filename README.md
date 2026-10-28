@@ -1,190 +1,269 @@
 <div align="center">
 
 # 🌐 STRATUM SOVEREIGN MULTI-TENANT ARCHITECTURE
-## Master Architecture Hub & Component Directory
+## Hub Central de Arquitectura y Directorio Maestro de Componentes
+### Enterprise Isolation-by-Design Infrastructure Suite
 
 [![Commercial Brand & Distributor](https://img.shields.io/badge/Distributor-Isora%20Cloud%20Group-0ea5e9?style=for-the-badge&logo=cloud&logoColor=white)](https://isora.com.co)
 [![Copyright & Architect](https://img.shields.io/badge/Copyright%20%26%20Architect-Sandra%20Gabriela%20Puerto%20Torres%20(SGPT)-f59e0b?style=for-the-badge&logo=shield&logoColor=white)](https://www.linkedin.com/in/sandra-puerto/)
 [![GitHub](https://img.shields.io/badge/GitHub-@sandra--puerto-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sandra-puerto)
-[![Architecture Version](https://img.shields.io/badge/Stratum%20Architecture-v2.0.0-6366f1?style=for-the-badge&logo=docker&logoColor=white)](#)
-[![Security Hardening](https://img.shields.io/badge/Security-Cap--Drop%20%7C%20No--New--Privileges-emerald?style=for-the-badge)](SECURITY.md)
-[![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg?style=for-the-badge)](LICENSE)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Sandra%20Gabriela%20Puerto%20Torres-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/sandra-puerto/)
+[![Powered By](https://img.shields.io/badge/Powered%20By-Google%20Antigravity%20AI-6366f1?style=for-the-badge&logo=google&logoColor=white)](#)
+[![Initial Synthesis](https://img.shields.io/badge/v1%20Synthesis-DeepSeek-0ea5e9?style=for-the-badge&logo=deepseek&logoColor=white)](#)
+[![Platform Version](https://img.shields.io/badge/Architecture-Stratum%20v2.0.0-4f46e5?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/isora-cloud-group/stratum-core)
+[![Security Hardening](https://img.shields.io/badge/Security-Zero%20Host%20Ports%20%7C%20Cap--Drop-emerald?style=for-the-badge)](SECURITY.md)
+[![Compliance](https://img.shields.io/badge/Compliance-ISO%2027001%20%7C%20SOC%202%20%7C%20GDPR-10b981?style=for-the-badge)](COMPATIBILITY_MATRIX.md)
+[![Legal Registration](https://img.shields.io/badge/DNDA%20Colombia-Ley%2023%20de%201982-1e293b?style=for-the-badge)](https://stratum.isora.com.co)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg?style=for-the-badge)](LICENSE)
 
-### *"Aislamiento por diseño, no por disciplina"*
+### *«Aislamiento por diseño, no por disciplina»*
 *(“Isolation by design, not by discipline”)*
 
 ---
 
-[**Visión y Filosofía**](#1-visión-y-filosofía) •
-[**Directorio de Componentes (Guía Telefónica)**](#2-directorio-general-de-componentes) •
-[**Topología en 4 Capas**](#3-arquitectura-y-topología-en-4-capas) •
-[**Guía de Decisión**](#4-árbol-de-decisión-por-dónde-empiezo) •
-[**Cumplimiento y Hardening**](#5-matriz-de-seguridad-y-cumplimiento)
+[**1. Resumen Ejecutivo**](#1-resumen-ejecutivo-y-alcance-operativo) •
+[**2. ¿Por Dónde Empiezo?**](#2-árbol-de-decisión-por-dónde-empiezo) •
+[**3. Topología en 4 Tiers**](#3-topología-de-la-arquitectura-4-tiers) •
+[**4. Directorio de Repositorios**](#4-directorio-de-repositorios-del-ecosistema) •
+[**5. Decisiones (ADRs)**](#5-decisiones-arquitectónicas-registradas-adrs) •
+[**6. STRIDE & Cumplimiento**](#6-modelo-de-amenazas-stride-y-cumplimiento) •
+[**7. Ecosistema ICG**](#7-ecosistema-soberano-isora-cloud-group) •
+[**8. Servicios & Adopción**](#8-adopción-empresarial-servicios-y-soporte) •
+[**9. Autores & Gobernanza**](#9-autores-gobernanza-y-licencia)
 
 ---
 </div>
 
-## 1. Visión y Filosofía
+## 1. Resumen Ejecutivo y Alcance Operativo
 
-**Stratum** es una suite de herramientas y arquitectura de referencia de grado empresarial diseñada para operar múltiples organizaciones (inquilinos / *tenants*) sobre una misma infraestructura física o virtual, garantizando un aislamiento estricto a nivel de kernel, red y persistencia.
+**Stratum** es una arquitectura de referencia soberana y suite de ingeniería de contenedores diseñada para operar múltiples organizaciones independientes sobre una misma infraestructura física o virtual, con **aislamiento topológico de red por diseño**, mediación ciega en persistencia y un plano de control administrativo autónomo.
 
-### El Reto del Multi-Tenancy Tradicional
-* **El fallo del aislamiento lógico en base de datos:** Confiar en una columna `tenant_id` y en que los desarrolladores nunca olviden una cláusula `WHERE` es una bomba de tiempo operativa. Un descuido humano expone datos confidenciales entre empresas.
-* **El peligro de puertos abiertos:** Mapear puertos al host (`-p 8080:80`, `-p 5432:5432`) provoca colisiones y expone motores de persistencia a la red pública o a movimientos laterales entre contenedores.
-* **La sobrecarga de Kubernetes:** Orquestar clústeres sobredimensionados para albergar entre 2 y 50 organizaciones introduce costos desorbitados y complejidad innecesaria.
+### La Brecha que Resuelve Stratum
+1. **Frente al "Multi-Tenancy Lógico" en Base de Datos:**  
+   Colocar múltiples empresas en una base de datos compartida discriminada solo por `tenant_id` es una bomba de tiempo operativa. Un descuido en una consulta SQL, una migración fallida o un bug en el ORM exponen datos confidenciales entre clientes. Stratum impone aislamiento en el kernel y en los espacios de nombres de red (*network namespaces*): **el aislamiento no depende de la atención humana, es una restricción física y lógica de la infraestructura.**
+2. **Frente a la Sobrecarga de Kubernetes:**  
+   Clústeres sobredimensionados introducen costos desorbitados y complejidad operativa innecesaria para albergar entre 2 y 50 organizaciones. Stratum permite una densidad multi-tenant eficiente, segura y de bajo coste sobre hosts Linux estándar.
+3. **Frente a Puertos Host Expuestos:**  
+   Stratum opera bajo la regla estricta **Zero Host Ports**: ningún contenedor publica puertos directamente en la interfaz del servidor (`0.0.0.0`). Todo el tráfico llega exclusivamente a través de túneles cifrados salientes de borde (Cloudflare Zero Trust).
 
-### El Enfoque Stratum
-Stratum elimina la dependencia de la disciplina humana implementando restricciones infranqueables por diseño:
-1. **Zero Host Ports:** Ningún contenedor de servicio publica puertos hacia interfaces físicas del host.
-2. **Redes Ciegas (`internal: true`):** Las bases de datos y cargas internas no poseen pasarela de salida a internet; la exfiltración directa es imposible.
-3. **Persistencia Mediada en L4 (Split-Horizon):** Los motores de base de datos residen en una red aislada y solo son accesibles mediante proxies TCP stream controlados.
-4. **Redis Soberano Local:** Cada inquilino dispone de su propia instancia de Redis; la memoria volátil y las sesiones nunca se comparten.
+> **Marco de Propiedad Intelectual:** Conforme a la **Ley 23 de 1982** y la **Decisión Andina 351 de 1993**, Stratum está formalizada como obra técnica ante la **Dirección Nacional de Derecho de Autor (DNDA)** de Colombia, concebida y diseñada por **Sandra Gabriela Puerto Torres (SGPT)**, distribuida bajo la marca comercial **Isora Cloud Group (ICG)** e implementada mediante ingeniería agéntica de **Google Antigravity AI** y **DeepSeek**.
 
 ---
 
-## 2. Directorio General de Componentes
+## 2. 🧭 Árbol de Decisión: ¿Por Dónde Empiezo?
 
-Utiliza esta guía como punto de aterrizaje para explorar y clonar los módulos de la suite:
+Utiliza este mapa de navegación para identificar inmediatamente el componente exacto que requieres según tu necesidad:
 
-### 🎮 Plano de Control y Orquestación
-
-| Repositorio | Rol Arquitectónico | Tecnologías Clave | Enlace al Repositorio |
-| :--- | :--- | :--- | :--- |
-| **`stratum-cli`** | **Orquestador Central de CLI**<br>Aprovisionamiento de inquilinos, rotación criptográfica con entropía física, validaciones y diagnósticos (`stratum doctor`). **Cero dependencias externas de runtime.** | Python 3.10+ (Standard Library pura), HMAC-SHA512, Linux CLI | [![Repo](https://img.shields.io/badge/Ver_Repo-stratum--cli-6366f1?style=flat-square&logo=github)](https://github.com/sandra-puerto/stratum-cli) |
-
----
-
-### 🏛️ Plano de Plataforma y Frontera de Inquilino
-
-| Repositorio | Rol Arquitectónico | Tecnologías Clave | Enlace al Repositorio |
-| :--- | :--- | :--- | :--- |
-| **`stratum-core`** | **Tier 1: Cimientos de Plataforma**<br>Define la DMZ perimetral, el gateway de entrada de túneles y el clúster central de persistencia (PostgreSQL 16, MongoDB 7) confinado en red ciega con proxy L4. | Docker Compose, Nginx Stream L4, Cloudflare Tunnels, Postgres, Mongo | [![Repo](https://img.shields.io/badge/Ver_Repo-stratum--core-4f46e5?style=flat-square&logo=github)](https://github.com/sandra-puerto/stratum-core) |
-| **`stratum-org`** | **Tier 2: Isla Soberana de Organización**<br>Frontera administrativa y de red para un cliente individual. Enrutador dual-homed, red interna privada aislada y Redis 7 dedicado. | Nginx L7/L4, Redis 7, Docker Compose, Split-Horizon | [![Repo](https://img.shields.io/badge/Ver_Repo-stratum--org-0284c7?style=flat-square&logo=github)](https://github.com/sandra-puerto/stratum-org) |
-
----
-
-### 🚀 Cargas de Trabajo Consumidoras (Tier 3 Workloads)
-*Plantillas reforzadas listas para producción. Conectadas exclusivamente a la red interna de su organización y sin exposición de puertos al host.*
-
-| Repositorio | Stack Tecnológico | Casos de Uso Típicos | Enlace al Repositorio |
-| :--- | :--- | :--- | :--- |
-| **`stratum-python`** | Python 3.12+, FastAPI, Django, Celery | Microservicios REST/GraphQL de alto rendimiento, APIs asíncronas y colas de tareas con Celery. | [![Repo](https://img.shields.io/badge/Ver_Repo-stratum--python-3776AB?style=flat-square&logo=python&logoColor=white)](https://github.com/sandra-puerto/stratum-python) |
-| **`stratum-node`** | Node.js 20/22+ LTS, TypeScript, NestJS, Express | Aplicaciones en tiempo real, backends TypeScript modulares y APIs orientadas a eventos. | [![Repo](https://img.shields.io/badge/Ver_Repo-stratum--node-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://github.com/sandra-puerto/stratum-node) |
-| **`stratum-spring`** | Java 21 LTS, Spring Boot 3.3+, Gradle/Maven | Servicios transaccionales empresariales, arquitecturas DDD y procesamiento batch robusto. | [![Repo](https://img.shields.io/badge/Ver_Repo-stratum--spring-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://github.com/sandra-puerto/stratum-spring) |
-| **`stratum-laravel`** | PHP 8.4/8.5, Laravel 11/12+, FrankenPHP/Nginx | Aplicaciones web completas, SaaS administrativos, sistemas CRM/ERP y flujos de trabajo PHP modernos. | [![Repo](https://img.shields.io/badge/Ver_Repo-stratum--laravel-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://github.com/sandra-puerto/stratum-laravel) |
-| **`stratum-overleaf`** | Overleaf CE, TeX Live 2026 Scheme-Full, Redis, Mongo | Estudio colaborativo de redacción científica LaTeX con compilación acelerada en memoria `tmpfs`. | [![Repo](https://img.shields.io/badge/Ver_Repo-stratum--overleaf-47A248?style=flat-square&logo=overleaf&logoColor=white)](https://github.com/sandra-puerto/stratum-overleaf) |
-| **`stratum-nextcloud`** | Nextcloud Hub Enterprise, PHP 8.3+, MariaDB/Postgres | Suite colaborativa de nube soberana, almacenamiento privado de archivos, sincronización y ofimática. | [![Repo](https://img.shields.io/badge/Ver_Repo-stratum--nextcloud-0082C9?style=flat-square&logo=nextcloud&logoColor=white)](https://github.com/sandra-puerto/stratum-nextcloud) |
+```text
+¿Qué deseas lograr en la plataforma Stratum?
+│
+├── 1. "Voy a montar la infraestructura base del servidor por primera vez"
+│   └── ➔ Despliega stratum-core
+│          (Configura la DMZ perimetral, túneles de borde y el clúster central de persistencia L4).
+│          Repositorio: https://github.com/isora-cloud-group/stratum-core
+│
+├── 2. "Necesito administrar la plataforma, automatizar tareas o aprovisionar inquilinos"
+│   └── ➔ Instala stratum-cli
+│          (CLI en Python puro sin dependencias externas: `stratum org create`, `stratum db create`, `stratum doctor`).
+│          Repositorio: https://github.com/isora-cloud-group/stratum-cli
+│
+├── 3. "Quiero entender la plantilla de aislamiento para cada organización"
+│   └── ➔ Explora stratum-org
+│          (Enrutador Nginx dual-homed, red interna privada y Redis 7 dedicado por inquilino).
+│          Repositorio: https://github.com/isora-cloud-group/stratum-org
+│
+└── 4. "Quiero desplegar o migrar una carga de trabajo (Tier 3 Workload)"
+    ├── Backend Python (FastAPI / Django / Celery)  ➔ stratum-python
+    ├── Backend TypeScript / Node.js (Nest / Express) ➔ stratum-node
+    ├── Backend Java (Java 21 LTS / Spring Boot 3)   ➔ stratum-spring
+    ├── Aplicación PHP (PHP 8.4 / Laravel 11/12)     ➔ stratum-laravel
+    ├── Estudio Colaborativo LaTeX (TeX Live 2026)   ➔ overleaf-stratum
+    └── Nube Soberana y Almacenamiento Seguro        ➔ stratum-nextcloud
+```
 
 ---
 
-## 3. Arquitectura y Topología en 4 Capas
+## 3. 🏗️ Topología de la Arquitectura (4 Tiers)
 
 ```mermaid
 flowchart TD
-    classDef internet fill:#0284c7,stroke:#0369a1,stroke-width:2px,color:#fff;
-    classDef tier0 fill:#4f46e5,stroke:#3730a3,stroke-width:2px,color:#fff;
-    classDef tier1 fill:#1e1b4b,stroke:#4338ca,stroke-width:2px,color:#fff;
-    classDef tier2 fill:#0f172a,stroke:#0284c7,stroke-width:2px,color:#fff;
-    classDef tier3 fill:#047857,stroke:#065f46,stroke-width:2px,color:#fff;
-    classDef cli fill:#d97706,stroke:#b45309,stroke-width:2px,color:#fff;
-
-    USER["🌐 Tráfico Público / Usuarios"]:::internet
-    CLI["⚡ stratum-cli (Plano de Control)"]:::cli
-
-    subgraph TIER0 ["TIER 0: Ingress Perimetral"]
-        CF["Cloudflare Zero Trust Tunnels / Edge Ingress<br/>(CERO puertos TCP/UDP abiertos al host)"]:::tier0
-    end
-
-    subgraph TIER1 ["TIER 1: Platform Core (stratum-core)"]
-        DMZ["Red DMZ (stratum_dmz)"]:::tier1
-        PROXY_DB["Proxy L4 Stream (stratum-database-nginx)"]:::tier1
-        subgraph BLIND_DB ["Red Ciega Interna (internal: true)"]
-            PG["PostgreSQL 16 Enterprise"]:::tier1
-            MG["MongoDB 7.0 Cluster"]:::tier1
-        end
-    end
-
-    subgraph TIER2A ["TIER 2: Isla Inquilino A (stratum-org)"]
-        NGX_A["Nginx Frontier Router A"]:::tier2
-        REDIS_A["Redis 7 Soberano A"]:::tier2
-        NET_A["Red Interna Privada A (internal: true)"]:::tier2
-    end
-
-    subgraph TIER3A ["TIER 3: Cargas de Trabajo A"]
-        W1["stratum-python / stratum-node"]:::tier3
-        W2["stratum-overleaf / stratum-nextcloud"]:::tier3
-    end
-
-    USER --> CF
-    CF --> DMZ
-    DMZ --> NGX_A
-    NGX_A --> NET_A
-    NET_A --> W1
-    NET_A --> W2
-    NET_A --> REDIS_A
+    EXT["🌐 Clientes & Tráfico Externo"] -->|"Túnel Cifrado TLS Saliente"| T0["Tier 0: Ingress Perimetral (Cloudflare Zero Trust)"]
     
-    W1 -. Consumo L4 DB (Split-Horizon) .-> NGX_A
-    NGX_A -. Reenvío L4 seguro .-> PROXY_DB
-    PROXY_DB --> PG
-    PROXY_DB --> MG
+    subgraph CorePlatform ["Tier 1: Plataforma Base (stratum-core)"]
+        DMZ["Red DMZ Perimetral: stratum_dmz"]
+        ANCHOR["Centinela DMZ: stratum-dmz-anchor (UID 65534)"]
+        L4PROXY["Proxy L4 TCP Stream: stratum-database-nginx"]
+        
+        subgraph BlindDataTier ["Red Ciega Interna: stratum_database_internal (internal: true)"]
+            PG["PostgreSQL 16 Engine"]
+            MONGO["MongoDB 7.0 ReplicaSet"]
+        end
+        
+        DMZ --> ANCHOR
+        DMZ --> L4PROXY
+        L4PROXY -->|"Mediación TCP Interna"| PG
+        L4PROXY -->|"Mediación TCP Interna"| MONGO
+    end
 
-    CLI -. Orquesta infra y tenants .-> TIER1
-    CLI -. Provee organizaciones .-> TIER2A
+    T0 -->|"Tráfico L7 Desencapsulado"| DMZ
+
+    subgraph OrgA ["Tier 2: Isla Inquilino A (stratum-org-cliente-a)"]
+        ROUTER_A["Router Nginx Frontal A (Dual-Homed)"]
+        REDIS_A["Redis 7 Soberano A (Memoria Aislada)"]
+        subgraph WorkloadsA ["Tier 3: Cargas de Trabajo (A)"]
+            W_A1["FastAPI / Django (stratum-python)"]
+            W_A2["Celery Worker"]
+        end
+        ROUTER_A --> REDIS_A
+        ROUTER_A --> W_A1
+        ROUTER_A --> W_A2
+    end
+
+    subgraph OrgB ["Tier 2: Isla Inquilino B (stratum-org-cliente-b)"]
+        ROUTER_B["Router Nginx Frontal B (Dual-Homed)"]
+        REDIS_B["Redis 7 Soberano B (Memoria Aislada)"]
+        subgraph WorkloadsB ["Tier 3: Cargas de Trabajo (B)"]
+            W_B1["Laravel 12 / PHP 8.4 (stratum-laravel)"]
+            W_B2["Spring Boot 3 / Java 21 (stratum-spring)"]
+        end
+        ROUTER_B --> REDIS_B
+        ROUTER_B --> W_B1
+        ROUTER_B --> W_B2
+    end
+
+    DMZ -->|"Enrutamiento Perimetral L7"| ROUTER_A
+    DMZ -->|"Enrutamiento Perimetral L7"| ROUTER_B
+
+    ROUTER_A -.->|"Split-Horizon L4 Stream"| L4PROXY
+    ROUTER_B -.->|"Split-Horizon L4 Stream"| L4PROXY
 ```
 
 ---
 
-## 4. Árbol de Decisión: ¿Por dónde empiezo?
+## 4. 📦 Directorio de Repositorios del Ecosistema
 
-```
-¿Qué deseas lograr en la plataforma Stratum?
-│
-├── 1. "Voy a montar la infraestructura base por primera vez"
-│   └── ➔ Despliega [stratum-core](https://github.com/sandra-puerto/stratum-core)
-│          (Configura DMZ, túneles de entrada y base de datos central).
-│
-├── 2. "Necesito aprovisionar un nuevo cliente / inquilino"
-│   └── ➔ Ejecuta [stratum-cli](https://github.com/sandra-puerto/stratum-cli)
-│          Comando: `stratum org create <nombre-cliente>`
-│          (Genera la isla basada en [stratum-org](https://github.com/sandra-puerto/stratum-org)).
-│
-└── 3. "Quiero desarrollar o migrar una aplicación para un cliente"
-    ├── Backend Python (FastAPI/Django)  ➔ [stratum-python](https://github.com/sandra-puerto/stratum-python)
-    ├── Backend TypeScript / Node.js     ➔ [stratum-node](https://github.com/sandra-puerto/stratum-node)
-    ├── Backend Java / Spring Boot       ➔ [stratum-spring](https://github.com/sandra-puerto/stratum-spring)
-    ├── Aplicación PHP / Laravel         ➔ [stratum-laravel](https://github.com/sandra-puerto/stratum-laravel)
-    ├── Suite Colaborativa LaTeX         ➔ [stratum-overleaf](https://github.com/sandra-puerto/stratum-overleaf)
-    └── Almacenamiento y Nube Soberana   ➔ [stratum-nextcloud](https://github.com/sandra-puerto/stratum-nextcloud)
-```
+Todos los módulos de la suite se coordinan institucionalmente bajo la organización [**Isora Cloud Group**](https://github.com/isora-cloud-group):
+
+| Repositorio | Capa / Rol | Descripción Técnica | Estado | Enlace Oficial |
+| :--- | :--- | :--- | :---: | :--- |
+| **`stratum-hub`** | **Directorio Central** | Punto de entrada institucional, catálogo de integraciones, especificaciones técnicas y ADRs. | Producción | [Ver Repositorio](https://github.com/isora-cloud-group/stratum-hub) |
+| **`stratum-core`** | **Tier 1: Core Platform** | Infraestructura perimetral, subred DMZ, proxy de persistencia L4 TCP y bases de datos centrales blindadas. | v2.0.0 | [Ver Repositorio](https://github.com/isora-cloud-group/stratum-core) |
+| **`stratum-cli`** | **Plano de Control** | Orquestador administrativo CLI en Python puro con **cero dependencias en runtime** para aprovisionamiento, rotación criptográfica y auditoría. | v2.0.0 | [Ver Repositorio](https://github.com/isora-cloud-group/stratum-cli) |
+| **`stratum-org`** | **Tier 2: Tenant Island** | Plantilla de aislamiento soberano de organización, router Nginx dual-homed y Redis 7 dedicado por cliente. | v1.1.0 | [Ver Repositorio](https://github.com/isora-cloud-group/stratum-org) |
+| **`stratum-laravel`**| **Tier 3: Workload** | Carga PHP 8.4 con Laravel 11/12+, FrankenPHP/Nginx, almacenamiento read-only y ejecución no privilegiada. | v2.1.0 | [Ver Repositorio](https://github.com/isora-cloud-group/stratum-laravel) |
+| **`overleaf-stratum`**| **Tier 3: Workload** | Estudio colaborativo de LaTeX paquetizado con TeX Live 2026 Scheme-Full, compilación en `tmpfs` y mitigación de cold-starts. | v3.1.0 | [Ver Repositorio](https://github.com/isora-cloud-group/overleaf-stratum) |
+| **`stratum-python`** | **Tier 3: Workload** | Boilerplate para Python 3.12+ (FastAPI, Django, Celery) con multi-stage hardening y conexión a persistencia local. | v1.0.0 | [Ver Repositorio](https://github.com/isora-cloud-group/stratum-python) |
+| **`stratum-node`** | **Tier 3: Workload** | Boilerplate para Node.js 20/22+ LTS (NestJS, Express, TypeScript) en Alpine Linux con recolección de zombies via tini. | v1.0.0 | [Ver Repositorio](https://github.com/isora-cloud-group/stratum-node) |
+| **`stratum-spring`** | **Tier 3: Workload** | Boilerplate para Java 21 LTS y Spring Boot 3.3+ con optimización de memoria para contenedores (`MaxRAMPercentage`). | v1.0.0 | [Ver Repositorio](https://github.com/isora-cloud-group/stratum-spring) |
+| **`stratum-nextcloud`**| **Tier 3: Workload** | Suite de colaboración y almacenamiento soberano multi-tenant desacoplada en base de datos dedicada y Redis propio. | v2.0.0 | [Ver Repositorio](https://github.com/isora-cloud-group/stratum-nextcloud) |
 
 ---
 
-## 5. Matriz de Seguridad y Cumplimiento
+## 5. 📜 Decisiones Arquitectónicas Registradas (ADRs)
 
-Todos los contenedores de la suite Stratum deben cumplir estrictamente con los siguientes estándares:
+La arquitectura de Stratum formaliza cuatro Registros de Decisión Arquitectónica (*Architectural Decision Records*):
 
-| Control Técnico | Estándar Stratum | Impacto en Cumplimiento (ISO 27001 / SOC 2) |
+```mermaid
+flowchart LR
+    ADR1["ADR-0001<br/><b>Islas Topológicas</b><br/>Redes privadas internal: true"]
+    ADR2["ADR-0002<br/><b>Proxy L4 TCP Stream</b><br/>Mediación ciega en persistencia"]
+    ADR3["ADR-0003<br/><b>Redis Soberano Local</b><br/>Memoria dedicada por inquilino"]
+    ADR4["ADR-0004<br/><b>Túneles de Borde</b><br/>Zero host ports expuestos"]
+
+    ADR1 --> ADR2
+    ADR2 --> ADR3
+    ADR3 --> ADR4
+```
+
+1. **ADR-0001 (Aislamiento por Islas Topológicas frente a Puentes Planos):** Cada inquilino opera sobre una red puente virtual dedicada `stratum_${TENANT_ORG}_internal` con la directiva `internal: true`. Las cargas de trabajo no tienen interfaz en la DMZ ni publican puertos en el host, logrando aislamiento matemático en espacios de nombres de red (*network namespaces*).
+2. **ADR-0002 (Proxy de Capa 4 para Persistencia Compartida):** Proxy perimetral Nginx con módulo `stream` (`stratum-database-nginx`) con resolución dinámica mediante el DNS interno de Docker (`127.0.0.11 valid=10s`) y reutilización de conexiones (`proxy_timeout 1h`), evitando que los motores de base de datos se conecten a la red DMZ.
+3. **ADR-0003 (Instancias Soberanas Locales de Redis por Inquilino):** Eliminación de servidores Redis compartidos mediante bases de datos lógicas. Cada cliente dispone de su propio contenedor Redis con límite estricto de memoria (`--maxmemory 200mb`), política `allkeys-lru`, comandos críticos deshabilitados (`CONFIG`, `MODULE`, `DEBUG`, `SHUTDOWN`) y sistema de archivos raíz inmutable (`read_only: true`).
+4. **ADR-0004 (Túneles de Borde Autenticados con Cero Puertos Expuestos):** Supresión total de puertos de entrada en el cortafuegos físico (`0.0.0.0`). El ingreso se canaliza exclusivamente a través de túneles salientes cifrados Cloudflare Zero Trust (`cloudflared`).
+
+---
+
+## 6. 🛡️ Modelo de Amenazas STRIDE y Cumplimiento
+
+Stratum mitiga los vectores de ataque mediante restricciones de infraestructura:
+
+| Categoría STRIDE | Vector de Amenaza Convencional | Mitigación Topológica en Stratum |
 | :--- | :--- | :--- |
-| **Capacidades Linux** | `cap_drop: [ALL]` | Anula capacidades que permitirían alterar interfaces de red o escapar del contenedor. |
-| **Restricción SUID/SGID** | `security_opt: [no-new-privileges:true]` | Bloquea técnicas comunes de elevación local de privilegios. |
-| **Usuario de Ejecución** | Usuarios sin privilegios (`appuser`, `node`, `spring`, `nobody`) | Mitiga riesgos de vulneración total del host en caso de RCE. |
-| **Aislamiento de Red** | Redes internas con bandera `internal: true` | Impide que bases de datos o microservicios realicen conexiones no autorizadas al exterior. |
-| **Persistencia Volátil** | `read_only: true` con directorios temporales en `tmpfs` | Erradica la persistencia de malware en el sistema de archivos del contenedor. |
-| **Supervisión de Procesos** | Inicializador `tini` / `init: true` | Previene procesos zombi y garantiza respuesta inmediata ante señales del sistema. |
+| **Spoofing (Suplantación)** | Inquilino malicioso suplanta IP interna de otro inquilino en la subred compartida. | Redes virtuales aisladas con `internal: true`; los paquetes no pueden enrutarse entre islas de inquilino. |
+| **Tampering (Alteración)** | Manipulación no autorizada de tablas en bases de datos multi-tenant compartidas. | Nombres deterministas `org_servicio` con usuarios y esquemas restringidos bajo mínimo privilegio. |
+| **Repudiation (Repudio)** | Modificaciones no trazables en rutas web o configuración de microservicios. | Registro estructurado JSON con sellos de tiempo ISO 8601 y control de versiones mediante Infraestructura como Código (IaC). |
+| **Information Disclosure** | Escaneo de puertos internos o fugas cruzadas en canales Redis Pub/Sub globales. | Instancia local soberana de Redis por inquilino y proxy L4 con reenvío split-horizon. |
+| **Denial of Service (DoS)** | Saturación de memoria o CPU por un inquilino compromete el servidor anfitrión. | Contención estricta de recursos mediante cgroups v2 (`mem_limit`, `cpus`, `pids_limit`) en cada contenedor. |
+| **Elevation of Privilege** | Fuga de contenedor mediante escalada de privilegios hacia el kernel anfitrión. | `cap_drop: [ALL]`, `security_opt: [no-new-privileges:true]` y ejecución obligatoria bajo usuarios no-root. |
+
+### Mapeo Regulatorio Internacional
+
+| Estándar | Control / Cláusula | Cómo lo Garantiza Stratum |
+| :--- | :--- | :--- |
+| **ISO/IEC 27001:2022** | **A.8.12** (Fuga de Datos) | Redes de base de datos ciegas (`internal: true`) sin ruta predeterminada de salida a internet. |
+| **ISO/IEC 27001:2022** | **A.8.20** (Seguridad en Redes) | Segmentación topológica en 4 Tiers con interfaces perimetrales y DNS interno restringido. |
+| **ISO/IEC 27001:2022** | **A.8.24** (Criptografía) | Generador de entropía física con HMAC-SHA512 y comunicación de borde cifrada TLS. |
+| **ISO/IEC/IEEE 29148:2018** | Requisitos de Ingeniería | Especificación formal de interfaces, hardware mínimo (x86_64/ARM64) y criterios de aceptación. |
+| **SOC 2 Type II** | **Confidentiality / CC6.1** | Aislamiento estricto de memoria (Redis dedicado) y persistencia independiente por inquilino. |
+| **RGPD / GDPR** | **Artículo 17** (Derecho al Olvido) | Desaprovisionamiento atómico y eliminación completa de esquemas y volúmenes sin downtime de terceros. |
 
 ---
 
-## 6. Documentación Adicional
+## 7. 🌐 Ecosistema Soberano Isora Cloud Group
 
-* 📖 [**Arquitectura Detallada (ARCHITECTURE.md)**](ARCHITECTURE.md): Explicación exhaustiva del modelo de enrutamiento split-horizon y niveles de red.
-* 📋 [**Matriz de Compatibilidad (COMPATIBILITY_MATRIX.md)**](COMPATIBILITY_MATRIX.md): Versiones de lenguajes, frameworks y motores probados.
-* 🚀 [**Guía de Inicio Rápido (GETTING_STARTED.md)**](GETTING_STARTED.md): Manual paso a paso para operadores y sysadmins.
-* 🔒 [**Política de Seguridad (SECURITY.md)**](SECURITY.md): Directrices de divulgación coordinada y reporte de vulnerabilidades.
+Stratum forma parte de la suite tecnológica soberana operada por **Isora Cloud Group**:
+
+```text
+                               ┌─────────────────────────────────────────┐
+                               │            ISORA CLOUD GROUP            │
+                               │        Sovereign Solutions Hub          │
+                               └────────────────────┬────────────────────┘
+                                                    │
+                         ┌──────────────────────────┴──────────────────────────┐
+                         │                                                     │
+                         ▼                                                     ▼
+           ┌───────────────────────────┐                         ┌───────────────────────────┐
+           │          STRATUM          │                         │        SENTINEL-IT        │
+           │  Sovereign Multi-Tenant   │                         │ Windows Endpoint Hygiene  │
+           │     Application Suite     │                         │   & Compliance Audit      │
+           └─────────────┬─────────────┘                         └─────────────┬─────────────┘
+                         │                                                     │
+           • Servidores Linux & Cloudflare Edge                   • Puestos de trabajo Windows 10/11/Server
+           • Aislamiento de Red L4/L7 en Contenedores             • Auditoría automatizada ISO 27001 & ISO 20000-1
+           • Persistencia Blindada & Redis Local                 • BitLocker, Antimalware, Integridad DISM, SIEM
+           • https://github.com/isora-cloud-group/stratum-hub     • https://github.com/sandra-puerto/Sentinel-IT
+```
 
 ---
 
-## 7. Créditos y Licencia
+## 8. 💼 Adopción Empresarial, Servicios y Soporte
 
-* **Arquitectura & Autoría:** [Sandra Gabriela Puerto Torres (SGPT)](https://www.linkedin.com/in/sandra-puerto/)
-* **Distribución Oficial:** [Isora Cloud Group](https://isora.com.co)
-* **Licencia:** Distribuido bajo la **Licencia Apache 2.0**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+¿Deseas implementar Stratum en la infraestructura privada de tu organización, migrar clientes o requieres despliegue gestionado de grado corporativo?
+
+* **Servicios Gestionados:** Despliegue de infraestructura soberana bare-metal o en nube privada, hardening de kernel Linux y auditoría de aislamiento multi-tenant.
+* **Consultoría de Arquitectura:** Integración a medida de cargas de trabajo heredadas (*legacy*) en el modelo de islas topológicas.
+* **Soporte & Contacto Oficial:**
+  * **Portal Oficial:** [https://stratum.isora.com.co](https://stratum.isora.com.co)
+  * **Consultas Generales y Alianzas:** [contact@isora.com.co](mailto:contact@isora.com.co)
+  * **Operaciones de Seguridad:** [security@isora.com.co](mailto:security@isora.com.co)
+  * **Distribuidor Comercial:** [Isora Cloud Group](https://isora.com.co)
+
+---
+
+## 9. 👥 Autores, Gobernanza y Licencia
+
+Stratum se rige bajo un modelo de gobernanza que combina titularidad exclusiva de propiedad intelectual con distribución comercial corporativa e ingeniería agéntica de vanguardia:
+
+| Rol | Entidad / Contribuyente | Alcance y Función | Perfiles y Contacto |
+| :--- | :--- | :--- | :--- |
+| **Copyright & Arquitectura** | **Sandra Gabriela Puerto Torres (SGPT)** | Titular única y exclusiva de los derechos morales y patrimoniales. Concepción de arquitectura, diseño de controles y dirección técnica. | [GitHub: @sandra-puerto](https://github.com/sandra-puerto) · [LinkedIn](https://www.linkedin.com/in/sandra-puerto/) · [sandrapuerto.com](https://sandrapuerto.com) |
+| **Marca Comercial & Distribución** | **Isora Cloud Group (ICG)** | Marca comercial paraguas, gobernanza de la suite, despliegue gestionado y soporte corporativo. | [isora.com.co](https://isora.com.co) · [stratum.isora.com.co](https://stratum.isora.com.co) |
+| **Ingeniería Agéntica Principal** | **Google Antigravity AI Engine** | Implementación de código fuente, arquitectura agéntica de aislamiento, suites de pruebas automatizadas y hardening de seguridad. | [Google DeepMind](https://deepmind.google) |
+| **Síntesis Fundacional v1** | **DeepSeek** | Prototipado inicial y síntesis arquitectónica en la primera versión conceptual de la suite. | [DeepSeek AI](https://deepseek.com) |
+
+---
+
+### Registro Legal y Licencia
+
+* **Propiedad Intelectual:** Obra Científica y Técnica registrada conforme a la **Ley 23 de 1982** y la **Decisión Andina 351 de 1993** ante la **Dirección Nacional de Derecho de Autor (DNDA)** de la República de Colombia.
+* **Licencia de Código Abierto:** Distribuido bajo los términos de la **[Apache License, Version 2.0 (Apache-2.0)](LICENSE)**.
+* **Aviso de Marcas Nominativas:** Todos los nombres de productos y marcas de terceros (**Docker®**, **Cloudflare®**, **Nginx®**, **PostgreSQL®**, **MongoDB®**, **Redis®**, **Overleaf®**, **Nextcloud®**, **Python®**, **Linux®**) se mencionan únicamente con fines de identificación técnica bajo uso legítimo (*nominative fair use*).

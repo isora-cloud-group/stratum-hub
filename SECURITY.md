@@ -1,9 +1,9 @@
 # Security Policy
 
-**Repository:** `stratum-core`  
+**Repository:** `stratum-hub` (Stratum Sovereign Multi-Tenant Architecture Hub)  
 **Security Operations:** security@isora.com.co  
 **General Contact:** contact@isora.com.co  
-**Revision:** 1.2.0  
+**Revision:** 2.0.0  
 **Status:** Production  
 
 ---
@@ -14,9 +14,11 @@ Security updates are provided for the following active revisions:
 
 | Component | Supported Revision | Status |
 |---|---|---|
-| `dmz` | 1.0.x | :white_check_mark: Active / Supported |
-| `gateway` | 1.2.x | :white_check_mark: Active / Supported |
-| `database` | 1.4.x | :white_check_mark: Active / Supported |
+| `stratum-hub` | 2.0.x | :white_check_mark: Active / Supported |
+| `stratum-core` | 2.0.x | :white_check_mark: Active / Supported |
+| `stratum-cli` | 2.0.x | :white_check_mark: Active / Supported |
+| `stratum-org` | 1.1.x | :white_check_mark: Active / Supported |
+| Tier 3 Workloads (`laravel`, `overleaf`, `python`, `node`, `spring`, `nextcloud`) | 1.0.x - 3.x | :white_check_mark: Active / Supported |
 | Platform Baseline | 1.x | :white_check_mark: Supported |
 | Older releases | < 1.0 | :x: Unsupported |
 
