@@ -1,13 +1,13 @@
-# .cursorrules — Stratum-Hub Rules for AI and IDE
+# .cursorrules — Stratum Hub Rules for AI and IDE
 
 # 1. Architectural Integrity
 - Maintain the single-source-of-truth directory for all Stratum repositories.
-- Emphasize "Aislamiento por diseño, no por disciplina".
+- Enforce the foundational principle: "Isolation by design, not by discipline".
 - Ensure repository links, component names, and compatibility matrix stay synchronized.
-- Zero Host Ports invariant must be highlighted across all guides.
+- The Zero Host Ports invariant must be enforced across all documentation and guides.
 
 # 2. Versioning & Licensing
 - All artifacts must specify: Apache License, Version 2.0 (Apache-2.0).
-- Author and Copyright: Sandra Gabriela Puerto Torres / Isora Cloud Group.
+- Author and Copyright: Sandra Gabriela Puerto Torres (SGPT) / Isora Cloud Group (ICG).
 - Canonical URLs point to https://isora.com.co and https://stratum.isora.com.co.
-- Brand: Stratum Sovereign Multi-Tenant Architecture.
+- Official brand: Stratum Sovereign Multi-Tenant Architecture.

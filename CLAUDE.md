@@ -1,49 +1,49 @@
-# CLAUDE.md — Directivas de Arquitectura y Lineamientos para Asistentes de IA
+# CLAUDE.md — Architecture Directives and Guidelines for AI Assistants
 
-> **"Aislamiento por diseno, no por disciplina"** — *(“Isolation by design, not by discipline”)*
+> *“Isolation by design, not by discipline”*
 
-## 1. Vision General del Repositorio
-`stratum-hub` es el repositorio central, catalogo navegable y punto de referencia arquitectonico para la suite **Stratum Sovereign Multi-Tenant Architecture**. Actua como el ancla de integracion para todos los repositorios satelite y cargas de trabajo operadas por **Isora Cloud Group (ICG)**.
+## 1. Repository Overview
+`stratum-hub` serves as the central directory, navigable catalog, and master architectural reference for the **Stratum Sovereign Multi-Tenant Architecture** suite. It acts as the integration anchor for all satellite repositories and containerized workloads operated under **Isora Cloud Group (ICG)**.
 
 ---
 
-## 2. Invariantes de Diseno Inquebrantables
-Cualquier modificacion o sugerencia tecnica emitida para el ecosistema Stratum debe respetar de manera incondicional:
+## 2. Inviolable Architectural Invariants
+Any technical modification or code proposed for the Stratum ecosystem must unconditionally respect:
 
-1. **Zero Host Ports:** No proponer jamas el mapeo directo de puertos a interfaces fisicas del host (`ports: - "8080:8080"` o similar). Todo el trafico de ingreso ingresa mediante tuneles perimetrales cifrados de borde hacia `stratum_dmz`.
-2. **Blind Data Network:** La red `stratum_database_internal` debe mantener siempre `internal: true`. No posee pasarela de salida ni conectividad directa a internet.
-3. **Mediacion L4 en Base de Datos:** Los motores de persistencia (PostgreSQL, MongoDB) nunca se enlazan directamente a `stratum_dmz`. Todo acceso desde las organizaciones debe ser mediado por el proxy TCP Stream `stratum-database-nginx`.
-4. **Isla de Organizacion Ciega:** La subred privada de cada cliente (`stratum_<org>_internal`) es estrictamente ciega (`internal: true`). Las cargas de trabajo no tienen ruta hacia el DMZ ni hacia otros clientes.
-5. **Redis Soberano Local Dedicado:** Cada inquilino opera su propio contenedor Redis 7 en su red interna. Queda terminantemente vetado el uso de instancias Redis multi-tenant compartidas.
-6. **Cero Dependencias Externas en `stratum-cli`:** La herramienta CLI administrativa debe ejecutarse exclusivamente con la biblioteca estandar de Python 3.10+ (cero paquetes pip en runtime).
-7. **Slugs Deterministas:** Todo identificador de organizacion o servicio debe verificarse contra:
+1. **Zero Host Ports:** Never map ports directly onto physical host network interfaces (`ports: - "8080:8080"` or similar). All ingress traffic enters strictly through outbound encrypted edge tunnels into `stratum_dmz`.
+2. **Blind Persistence Network:** The `stratum_database_internal` bridge network must always maintain `internal: true`. It has no default gateway and no route to the internet.
+3. **Layer-4 Persistence Mediation:** Database engines (PostgreSQL, MongoDB) are never attached directly to `stratum_dmz`. Tenant access must be mediated via the Layer-4 TCP stream proxy `stratum-database-nginx`.
+4. **Blind Tenant Island:** Each tenant bridge network (`stratum_<org>_internal`) is strictly blind (`internal: true`). Tenant workloads have no route to the DMZ and cannot reach neighboring tenant networks.
+5. **Dedicated Sovereign Local Redis:** Every tenant operates its own Redis 7 container inside its private network. Shared multi-tenant Redis instances with logical database indices are prohibited.
+6. **Zero External Runtime Dependencies in `stratum-cli`:** The administrative CLI must execute exclusively using the Python 3.10+ standard library (zero pip packages required at runtime).
+7. **Deterministic Slugs:** All organization and service identifiers must validate against:
    `^[a-z0-9]+(?:-[a-z0-9]+)*$`
 
 ---
 
-## 3. Convencion de Enlaces Institucionales
-Al referenciar repositorios del ecosistema Stratum en documentacion o respuestas, deben utilizarse siempre los enlaces canonicos de la organizacion:
-* Hub Central: `https://github.com/isora-cloud-group/stratum-hub`
-* Plano de Control: `https://github.com/isora-cloud-group/stratum-cli`
-* Plataforma Base: `https://github.com/isora-cloud-group/stratum-core`
-* Isla de Organizacion: `https://github.com/isora-cloud-group/stratum-org`
-* Workload Python: `https://github.com/isora-cloud-group/stratum-python`
-* Workload Node.js: `https://github.com/isora-cloud-group/stratum-node`
-* Workload Java/Spring: `https://github.com/isora-cloud-group/stratum-spring`
-* Workload PHP/Laravel: `https://github.com/isora-cloud-group/stratum-laravel`
-* Workload Overleaf: `https://github.com/isora-cloud-group/overleaf-stratum`
-* Workload Nextcloud: `https://github.com/isora-cloud-group/stratum-nextcloud`
+## 3. Canonical Organizational Links
+When referencing Stratum repositories in documentation or automated responses, always use official organizational links:
+* Central Directory: `https://github.com/isora-cloud-group/stratum-hub`
+* Control Plane: `https://github.com/isora-cloud-group/stratum-cli`
+* Base Platform: `https://github.com/isora-cloud-group/stratum-core`
+* Tenant Island: `https://github.com/isora-cloud-group/stratum-org`
+* Python Workload: `https://github.com/isora-cloud-group/stratum-python`
+* Node.js Workload: `https://github.com/isora-cloud-group/stratum-node`
+* Java/Spring Workload: `https://github.com/isora-cloud-group/stratum-spring`
+* PHP/Laravel Workload: `https://github.com/isora-cloud-group/stratum-laravel`
+* LaTeX/Overleaf Workload: `https://github.com/isora-cloud-group/overleaf-stratum`
+* Cloud/Nextcloud Workload: `https://github.com/isora-cloud-group/stratum-nextcloud`
 
 ---
 
-## 4. Tono y Directivas de Estilo
-* **Ingenieria Sobria y Profesional:** No utilizar emoticonos, iconos informales ni redaccion coloquial que transmita sensacion de software experimental o generado superficialmente. Mantener un estricto tono de ingenieria institucional de alto nivel.
-* **Precisión Terminologica:** Utilizar terminos de ingenieria formales: *Aislamiento por diseno*, *Topologia Zero-Trust de 4 Capas*, *Mediacion L4 Stream*, *Hardening de Kernel*, *Contenedores Rootless*, *Gobernanza de Infraestructura*.
+## 4. Tone and Style Directives
+* **Formal Technical Register:** Avoid emojis, informal phrasing, or marketing rhetoric. Maintain a disciplined, professional systems engineering register.
+* **Unified Terminology:** Enforce standard technical terms: *isolation by design*, *four-tier zero-trust topology*, *L4 stream proxy*, *kernel hardening*, *unprivileged containers*, *topological island*, *tenant*, *workloads*.
+* **Diagram Standards:** Maintain Mermaid diagrams vertically oriented (`flowchart TD`) with concise, clean node labels and no embedded link pollution.
 
 ---
 
-## 5. Atribucion Legal y Autoria
-* **Titular de Derechos y Arquitecta:** Sandra Gabriela Puerto Torres (SGPT)
-* **Organizacion & Distribuidor:** Isora Cloud Group (ICG) — `https://isora.com.co`
-* **Licencia:** Apache License, Version 2.0 (Apache-2.0)
-
+## 5. Legal Attribution and Authorship
+* **Lead Architect & Copyright Holder:** Sandra Gabriela Puerto Torres (SGPT)
+* **Distributor & Brand:** Isora Cloud Group (ICG) — `https://isora.com.co`
+* **License:** Apache License, Version 2.0 (Apache-2.0)

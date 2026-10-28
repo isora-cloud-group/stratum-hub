@@ -2,130 +2,128 @@
 
 **Repository:** `stratum-hub` (Stratum Sovereign Multi-Tenant Architecture Hub)  
 **Security Operations:** security@isora.com.co  
-**General Contact:** contact@isora.com.co  
-**Revision:** 2.0.0  
+**General Inquiries:** contact@isora.com.co  
+**Revision:** v2.0.0  
 **Status:** Production  
 
 ---
 
-## 1. Supported Versions
+## 1. Supported Revisions
 
-Security updates are provided for the following active revisions:
+Security updates are provided for the following active revisions across the suite:
 
 | Component | Supported Revision | Status |
-|---|---|---|
-| `stratum-hub` | 2.0.x | :white_check_mark: Active / Supported |
-| `stratum-core` | 2.0.x | :white_check_mark: Active / Supported |
-| `stratum-cli` | 2.0.x | :white_check_mark: Active / Supported |
-| `stratum-org` | 1.1.x | :white_check_mark: Active / Supported |
-| Tier 3 Workloads (`laravel`, `overleaf`, `python`, `node`, `spring`, `nextcloud`) | 1.0.x - 3.x | :white_check_mark: Active / Supported |
-| Platform Baseline | 1.x | :white_check_mark: Supported |
-| Older releases | < 1.0 | :x: Unsupported |
+| :--- | :---: | :--- |
+| `stratum-hub` | v2.0.x | Active / Supported |
+| `stratum-core` | v2.0.x | Active / Supported |
+| `stratum-cli` | v2.0.x | Active / Supported |
+| `stratum-org` | v1.1.x | Active / Supported |
+| Tier 3 Workloads (`laravel`, `overleaf`, `python`, `node`, `spring`, `nextcloud`) | v1.0.x - v3.x | Active / Supported |
+| Legacy Platform Baseline | v1.x | Supported |
+| Older releases | < v1.0 | Unsupported |
 
-The current revision of each component is declared in the header and Document Control table of its respective `docker-compose.yml` and `README.md`. Consumers are expected to track the current revisions of the repository.
+The current revision of each component is declared in its respective repository descriptor and `README.md`. Consumers are expected to track current releases.
 
 ---
 
-## 2. Reporting a Vulnerability
+## 2. Vulnerability Reporting
 
-**Do not report security vulnerabilities through public GitHub issues, discussions, or any other public channel.**
+Do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.
 
-To report a vulnerability, send an email to:
+To report a vulnerability, transmit an encrypted or private disclosure to:
 
 > **security@isora.com.co**
 
-Include the following information in the report:
+Include the following diagnostic data in the disclosure report:
 
-1. **Type of vulnerability:** A short classification (e.g., privilege escalation, lateral movement, information disclosure, container escape, misconfiguration).
-2. **Affected component:** Specify `dmz`, `gateway`, `database`, or the repository as a whole.
-3. **Affected revision:** The revision number declared in the component's header, or the commit hash if the report concerns the repository directly.
-4. **Description:** A precise description of the issue and the conditions under which it manifests.
-5. **Reproduction steps:** A minimal, reproducible sequence of actions demonstrating the vulnerability.
-6. **Impact assessment:** An evaluation of the potential consequences if left unaddressed.
-7. **Suggested remediation:** Optional. Any proposed patch or mitigation.
-
-If the report contains sensitive information, encrypt the communication or arrange a secure channel via an initial unencrypted email containing no sensitive details.
+1. **Vulnerability Classification:** Category identifier (e.g., privilege escalation, lateral movement, information disclosure, container escape, configuration regression).
+2. **Affected Component:** Target component (`stratum-hub`, `stratum-core`, `stratum-cli`, `stratum-org`, or specific workload).
+3. **Affected Revision:** Revision number declared in the component header or Git commit hash.
+4. **Description:** Technical description of the vulnerability and required execution conditions.
+5. **Reproduction Steps:** Minimal, deterministic proof-of-concept steps to reproduce the behavior.
+6. **Impact Assessment:** Evaluation of potential security implications across tenant perimeters.
+7. **Suggested Remediation:** Optional patch or mitigation proposal.
 
 ---
 
-## 3. Response Timeline
+## 3. Response Timelines
 
-The following timeline is committed on a best-effort basis:
+Security responses adhere to the following service targets:
 
-| Stage | Target |
-|---|---|
-| Acknowledgment of receipt | Within 48 hours |
-| Initial assessment and severity classification | Within 7 days |
-| Remediation for critical issues | As soon as feasible |
-| Remediation for high severity | Within 30 days |
-| Remediation for medium severity | Within 90 days |
-| Public disclosure | Coordinated with reporter post-release |
-
----
-
-## 4. Disclosure Process
-
-1. **Report received:** The reporter receives acknowledgment.
-2. **Triage:** The issue is reproduced and classified.
-3. **Remediation:** A fix is developed and validated in a staging environment.
-4. **Release:** The fix is published as a new revision of the affected component.
-5. **Advisory:** A public disclosure advisory is issued with credit to the reporter unless anonymity is requested.
+| Stage | Target Window |
+| :--- | :--- |
+| Initial Acknowledgment | Within 48 hours |
+| Severity Assessment and Triage | Within 7 days |
+| Critical Severity Remediation | Immediate priority |
+| High Severity Remediation | Within 30 days |
+| Medium Severity Remediation | Within 90 days |
+| Public Disclosure | Coordinated post-release |
 
 ---
 
-## 5. Scope
+## 4. Disclosure Protocol
 
-### 5.1 In scope
+1. **Intake:** Receipt of vulnerability report is acknowledged within 48 hours.
+2. **Triage:** Reproduction and severity scoring under CVSS v3.1.
+3. **Remediation:** Patch development and validation within isolated testing environments.
+4. **Release:** Coordinated deployment of patched revisions.
+5. **Advisory:** Publication of security advisory with attribution to the reporter unless anonymity is requested.
 
-- Configuration errors in the `docker-compose.yml` files of any component.
-- Multi-organization tenant isolation weaknesses, lateral movement vectors, or cross-tunnel leakage in `gateway/`.
-- Weaknesses in network topology allowing a container to reach a network or host interface it is not attached to.
-- Capability or permission configurations that exceed the minimum required by upstream images (`cap_drop`, `cap_add`, `no-new-privileges`).
-- Hardcoded credentials or secrets in version-controlled configurations.
-- Weaknesses in the Layer 4 boundary client configuration under `database/nginx/`.
-- Vulnerabilities introduced by this orchestration pattern that would not exist in standard Docker setups.
+---
 
-### 5.2 Out of scope
+## 5. Security Scope
 
-- Vulnerabilities in upstream container images (`postgres`, `mongo`, `redis`, `nginx`, `alpine`, `cloudflared`, `jc21/nginx-proxy-manager`). Report these upstream.
-- Vulnerabilities in the Docker Engine or Docker Compose daemon.
-- Vulnerabilities in Cloudflare infrastructure or edge protocols.
-- Social engineering attacks against infrastructure operators.
-- Denial-of-service attacks that require root or physical host-level access.
-- Vulnerabilities in host-level OS configuration (firewall, SSH, kernel).
+### 5.1 In-Scope Targets
+
+* Configuration errors within Docker Compose descriptors across all components.
+* Multi-tenant network isolation failures, lateral movement vectors, or cross-island packet routing.
+* Subnet routing flaws permitting communication to unattached network namespaces or physical host interfaces.
+* Container capability configurations exceeding required baselines (`cap_drop`, `cap_add`, `no-new-privileges`).
+* Secret or credential exposure in version-controlled configurations.
+* Boundary Layer-4 stream routing flaws in `stratum-core` persistence proxies.
+
+### 5.2 Out-of-Scope Targets
+
+* Vulnerabilities residing in upstream third-party container images (`postgres`, `mongo`, `redis`, `nginx`, `alpine`, `cloudflared`). Report these to upstream maintainers.
+* Vulnerabilities in the Docker Engine daemon or Linux kernel.
+* Vulnerabilities in Cloudflare edge infrastructure or protocols.
+* Social engineering attacks against infrastructure operators.
+* Denial-of-service attacks requiring pre-existing physical host or root access.
+* Host operating system misconfigurations outside Stratum automation.
 
 ---
 
 ## 6. Safe Harbor
 
-Security research conducted in good faith against a deployment of `stratum-core` is considered authorized. The maintainer will not pursue legal action against researchers who:
+Security research conducted in good faith against deployments of Stratum components is authorized. The maintainers will not pursue legal action against researchers who:
 
-- Make a good-faith effort to avoid privacy violations, data destruction, and service interruption.
-- Interact only with deployments they own, operate, or have explicit permission to test.
-- Do not exploit a vulnerability beyond the minimum necessary to demonstrate its existence.
-- Report the vulnerability promptly and privately in accordance with Section 2.
-- Coordinate disclosure timelines prior to public release.
+* Avoid privacy violations, data destruction, and service degradation.
+* Interact exclusively with environments they own or have authorization to test.
+* Restrict exploitation strictly to the minimum necessary to validate existence.
+* Report vulnerabilities promptly and privately in accordance with Section 2.
+* Maintain confidentiality until coordinated disclosure release.
 
 ---
 
-## 7. Security Best Practices for Operators
+## 7. Operator Security Directives
 
-1. Restrict all `.env` file permissions to `chmod 600`.
-2. Never commit `.env` or credential files to version control (`.gitignore` enforced).
-3. Rotate Cloudflare Tunnel tokens and database administrative credentials periodically.
-4. Keep Docker Engine and host Linux kernels up to date with security patches.
-5. Validate upstream image releases before applying production updates.
-6. Perform regular backups of stateful database volumes prior to pulling new images.
-7. Monitor Docker logs and audit trails through an external SIEM/syslog agent.
+1. Restrict all `.env` configuration files to `chmod 600`.
+2. Enforce `.gitignore` controls to prevent credential commits to version control.
+3. Rotate Cloudflare Tunnel credentials and database master secrets periodically.
+4. Maintain current security patch baselines on Docker Engine and host Linux kernels.
+5. Audit upstream container image releases prior to production deployment.
+6. Execute automated stateful volume backups prior to container upgrades.
+7. Stream Docker container audit trails to centralized external syslog or SIEM collectors.
 
 ---
 
 ## 8. Document Control
 
 | Field | Value |
-|---|---|
-| Repository | `stratum-core` |
-| Contact | security@isora.com.co (General: contact@isora.com.co) |
-| Revision | 1.2.0 |
-| Status | Production |
-| Classification | Public Security Policy |
+| :--- | :--- |
+| **Repository** | `stratum-hub` |
+| **Security Contact** | security@isora.com.co |
+| **General Contact** | contact@isora.com.co |
+| **Revision** | v2.0.0 |
+| **Status** | Production |
+| **Classification** | Public Security Policy |

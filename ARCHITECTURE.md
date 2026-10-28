@@ -1,34 +1,34 @@
 # Stratum Sovereign Architecture Specification
 
-> **Documento de Especificacion Tecnica Oficial y Registro Arquitectonico**  
+> **Official Technical Specification and Architectural Reference**  
 > *Version 2.0.0 — Isora Cloud Group (ICG)*  
-> *Autora y Titular: Sandra Gabriela Puerto Torres (SGPT) ([GitHub: @sandra-puerto](https://github.com/sandra-puerto) · [LinkedIn](https://www.linkedin.com/in/sandra-puerto/)) — Obra Científica y Técnica Inédita protegida conforme a la Ley 23 de 1982 y Decisión Andina 351 (DNDA Colombia)*
+> *Architect & Copyright Holder: Sandra Gabriela Puerto Torres (SGPT) ([GitHub: @sandra-puerto](https://github.com/sandra-puerto) · [LinkedIn](https://www.linkedin.com/in/sandra-puerto/)) — Unpublished Scientific and Technical Work registered under Law 23 of 1982 and Andean Decision 351 (DNDA Colombia)*
 
 ---
 
-## 1. Topologia de Red y Enrutamiento Split-Horizon
+## 1. Network Topology and Split-Horizon Routing
 
-Stratum implementa un modelo de aislamiento donde ningun servicio de aplicacion conoce la direccion de red real ni tiene ruta IP directa hacia los motores centrales de base de datos.
+Stratum implements an isolation model where application services have no knowledge of the real network address and possess no direct IP route to central database engines.
 
-### 1.1. Diagrama de Confinamiento Topologico de Red
+### 1.1. Topological Network Confinement Diagram
 
 ```mermaid
 flowchart TD
-    subgraph HostServer ["Servidor Anfitrion Host (Zero Host Ports - 0.0.0.0 Libre)"]
-        subgraph DMZ_NET ["Subred DMZ: stratum_dmz (bridge / internal: false)"]
-            ANCHOR["stratum-dmz-anchor<br/>(Centinela UID 65534)"]
-            DB_NGINX["stratum-database-nginx<br/>(Proxy L4 Stream Persistencia)"]
-            ORG_NGINX["stratum-org-cliente-nginx<br/>(Router Frontal Dual-Homed)"]
+    subgraph HostServer ["Host Server (Zero Host Ports - 0.0.0.0 Unbound)"]
+        subgraph DMZ_NET ["DMZ Subnet: stratum_dmz (bridge / internal: false)"]
+            ANCHOR["stratum-dmz-anchor<br/>(Sentinel UID 65534)"]
+            DB_NGINX["stratum-database-nginx<br/>(L4 Stream Persistence Proxy)"]
+            ORG_NGINX["stratum-org-tenant-nginx<br/>(Dual-Homed Front Router)"]
         end
 
-        subgraph DB_NET ["Subred Persistencia: stratum_database_internal (internal: true)"]
+        subgraph DB_NET ["Persistence Subnet: stratum_database_internal (internal: true)"]
             POSTGRES["PostgreSQL 16 Engine"]
             MONGO["MongoDB 7.0 ReplicaSet"]
-            MONGO_INIT["mongodb-init-replicaset<br/>(Configurador Transitorio)"]
+            MONGO_INIT["mongodb-init-replicaset<br/>(Transient Configurator)"]
         end
 
-        subgraph ORG_NET ["Subred Inquilino: stratum_cliente_internal (internal: true)"]
-            REDIS["Redis 7 Soberano Local<br/>(allkeys-lru / Memoria Aislada)"]
+        subgraph ORG_NET ["Tenant Subnet: stratum_tenant_internal (internal: true)"]
+            REDIS["Dedicated Local Redis 7<br/>(allkeys-lru / Isolated Memory)"]
             WORKLOAD["Tier 3 Workload Container<br/>(FastAPI / Laravel / Spring / Overleaf)"]
         end
     end
@@ -36,133 +36,135 @@ flowchart TD
     ORG_NGINX --- DMZ_NET
     ORG_NGINX --- ORG_NET
     WORKLOAD --> REDIS
-    WORKLOAD -->|"Conexion TCP Local"| ORG_NGINX
+    WORKLOAD -->|"Local TCP Connection"| ORG_NGINX
 
     DB_NGINX --- DMZ_NET
     DB_NGINX --- DB_NET
     DB_NGINX --> POSTGRES
     DB_NGINX --> MONGO
-    MONGO_INIT -.->|"Inicializa"| MONGO
+    MONGO_INIT -.->|"Initializes"| MONGO
 
-    ORG_NGINX -.->|"Reenvio TCP Stream via DMZ"| DB_NGINX
+    ORG_NGINX -.->|"TCP Stream Forwarding via DMZ"| DB_NGINX
 ```
 
-### 1.2. Flujo Secuencial de Paquetes en Persistencia (Split-Horizon)
+### 1.2. Sequential Packet Flow in Persistence (Split-Horizon)
 
 ```mermaid
 sequenceDiagram
-    participant W as Tier 3 Workload (ej. FastAPI)
+    participant W as Tier 3 Workload (e.g., FastAPI)
     participant DNS as Docker DNS Resolver (127.0.0.11)
-    participant ORG as Router Inquilino Nginx (Stream)
-    participant DMZ as Subred DMZ (stratum_dmz)
-    participant CORE as Proxy Central Nginx (Stream)
-    participant DB as Motor de Base de Datos (Red Ciega)
+    participant ORG as Tenant Nginx Router (Stream)
+    participant DMZ as DMZ Subnet (stratum_dmz)
+    participant CORE as Central Nginx Proxy (Stream)
+    participant DB as Database Engine (Blind Network)
 
-    W->>DNS: Consulta resolucion de 'stratum-database-nginx'
-    DNS-->>W: Retorna IP interna de 'stratum-org-cliente-nginx'
-    W->>ORG: TCP SYN :5432 (PostgreSQL) o :27017 (MongoDB)
-    Note over ORG: Intercepta el flujo TCP mediante bloque stream
-    ORG->>DMZ: Reenvia conexion a traves de stratum_dmz
-    DMZ->>CORE: Entrega a stratum-database-core:puerto
-    Note over CORE: Valida y enruta hacia stratum_database_internal
-    CORE->>DB: TCP SYN final hacia motor de persistencia
+    W->>DNS: Query resolution for 'stratum-database-nginx'
+    DNS-->>W: Return internal IP of 'stratum-org-tenant-nginx'
+    W->>ORG: TCP SYN :5432 (PostgreSQL) or :27017 (MongoDB)
+    Note over ORG: Intercepts TCP stream via stream block
+    ORG->>DMZ: Forward connection across stratum_dmz
+    DMZ->>CORE: Deliver to stratum-database-core:port
+    Note over CORE: Validates and routes to stratum_database_internal
+    CORE->>DB: Final TCP SYN to persistence engine
     DB-->>CORE: TCP SYN-ACK
-    CORE-->>DMZ: Flujo TCP
-    DMZ-->>ORG: Flujo TCP
-    ORG-->>W: TCP ACK final establecido
+    CORE-->>DMZ: TCP stream
+    DMZ-->>ORG: TCP stream
+    ORG-->>W: Final TCP ACK established
 ```
 
 ---
 
-## 2. Definicion Formal de Subredes y Aislamiento
+## 2. Formal Subnet and Isolation Specification
 
-Conforme al **ADR-0001** y **ADR-0002**, el aislamiento se basa en espacios de nombres de red de Linux (*network namespaces*) administrados por Docker:
+Pursuant to **ADR-0001** and **ADR-0002**, isolation is enforced through Linux network namespaces managed by Docker:
 
-| Nombre de Red | Ambito | Driver | Bandera `internal` | Conectividad Externa y Politica de Enrutamiento |
+| Network Name | Scope | Driver | `internal` Flag | External Connectivity and Routing Policy |
 | :--- | :--- | :--- | :---: | :--- |
-| **`stratum_dmz`** | Plataforma Central | `bridge` | `false` | Solo trafico saliente hacia tuneles Ingress autorizados (Cloudflare Zero Trust). Cero puertos de escucha abiertos en `0.0.0.0`. |
-| **`stratum_database_internal`** | Nucleo Persistencia | `bridge` | **`true`** | **Red Ciega.** Sin puerta de enlace predeterminada hacia internet. Imposibilidad fisica y logica de exfiltracion. |
-| **`stratum_<org>_internal`** | Isla de Inquilino | `bridge` | **`true`** | **Red Ciega.** Confinada al perimetro exclusivo de la organizacion. Imposibilidad de enrutar hacia otras islas. |
+| **`stratum_dmz`** | Central Platform | `bridge` | `false` | Outbound traffic restricted to authorized ingress tunnels (Cloudflare Zero Trust). Zero listening ports bound on `0.0.0.0`. |
+| **`stratum_database_internal`** | Persistence Core | `bridge` | **`true`** | **Blind Network.** No default egress gateway to the internet. Physical and logical prevention of data exfiltration. |
+| **`stratum_<org>_internal`** | Tenant Island | `bridge` | **`true`** | **Blind Network.** Confined exclusively to the tenant perimeter. Cross-island packet routing is prohibited. |
 
 ---
 
-## 3. Mecanismos Avanzados de Ingenieria
+## 3. Engineering Mechanisms
 
-### 3.1. Reconfiguracion Automatica de Replica MongoDB
-En topologias donde MongoDB opera dentro de una subred ciega y se consume a traves de proxies TCP de Capa 4, el protocolo nativo de MongoDB falla al devolver a los clientes la direccion interna del contenedor (`mongo:27017`), la cual es inalcanzable desde las redes de los inquilinos.
+### 3.1. Automated MongoDB Replica Set Reconfiguration
+When MongoDB operates within a blind subnet and is accessed through Layer-4 TCP stream proxies, its native protocol fails by returning the container internal address (`mongo:27017`) to clients, which is unreachable from tenant subnets.
 
-Stratum resuelve este desafio mediante el contenedor transitorio `mongodb-init-replicaset`, el cual ejecuta un script de inicializacion que reconfigura el replica set anunciando la direccion del proxy L4:
+Stratum resolves this constraint using the transient initialization container `mongodb-init-replicaset`, which executes a reconfiguration script announcing the L4 proxy address:
+
 ```javascript
 rs.reconfig({
   _id: "rs0",
   members: [{ _id: 0, host: "stratum-database-nginx:27017" }]
 }, { force: true });
 ```
-Esto garantiza compatibilidad transparente para controladores cliente de Node.js, Python, Java y PHP sin requerir acceso de red directo al contenedor primario.
 
-### 3.2. Cosecha de Entropia Fisica Multicapa (`entropy.py`)
-El generador criptografico integrado en `stratum-cli` erradica el riesgo de colision de claves o generacion determinista en entornos virtualizados. El algoritmo combina cuatro fuentes fisicas e independientes:
+This guarantees transparent client driver compatibility across Node.js, Python, Java, and PHP runtimes without requiring direct network exposure to the primary database container.
+
+### 3.2. Multi-Source Physical Entropy Harvesting (`entropy.py`)
+The cryptographic entropy generator built into `stratum-cli` mitigates key collision and deterministic pseudorandom generation in virtualized environments. The algorithm samples four independent physical entropy sources:
 
 ```mermaid
 flowchart TD
-    subgraph Fuentes ["Fuentes de Entropia Fisica"]
-        S1["CSPRNG Kernel (os.urandom)"]
-        S2["Micro-Jitter CPU (time.perf_counter_ns)"]
-        S3["Offset Memoria ASLR (Heap dinamico)"]
-        S4["Fluctuaciones Termicas (Ciclos diferencial)"]
+    subgraph Sources ["Physical Entropy Sources"]
+        S1["Kernel CSPRNG (os.urandom)"]
+        S2["CPU Micro-Jitter (time.perf_counter_ns)"]
+        S3["ASLR Memory Offset (Dynamic heap addresses)"]
+        S4["Thermal Fluctuations (Differential cycle counters)"]
     end
 
-    SPONGE["Esponja Criptografica<br/>Compresion HMAC-SHA512"]
-    OUT["Secreto de Alta Densidad<br/>24 caracteres (Sin colision)"]
+    SPONGE["Cryptographic Sponge<br/>HMAC-SHA512 Compression"]
+    OUT["High-Density Secret<br/>24 Alphanumeric Characters (Zero Collision)"]
 
-    Fuentes --> SPONGE
+    Sources --> SPONGE
     SPONGE --> OUT
 ```
 
-1. CSPRNG nativo del sistema operativo (`os.urandom` / `secrets`).
-2. Jitter y fluctuaciones de micro-temporizacion del reloj de la CPU en nanosegundos (`time.perf_counter_ns()`).
-3. Variabilidad del espacio de memoria (direcciones de objetos en memoria dinamica afectadas por ASLR).
-4. Compresion criptografica en esponja mediante **HMAC-SHA512**, produciendo cadenas aleatorias alfanumericas de alta densidad.
+1. Operating system native CSPRNG (`os.urandom` / `secrets`).
+2. CPU nanosecond clock micro-jitter and timing variations (`time.perf_counter_ns()`).
+3. Memory address space layout randomization (ASLR dynamic object addresses).
+4. Cryptographic sponge compression using **HMAC-SHA512**, generating high-density alphanumeric secrets.
 
-### 3.3. Enrutamiento Atomico L7 y Prevencion de Inyeccion
-Las rutas perimetrales generadas dinamicamente para cada inquilino se gestionan bajo un ciclo transaccional protegido contra regresiones sintácticas:
+### 3.3. Atomic L7 Routing and Injection Prevention
+Perimeter routing rules generated dynamically for each tenant are managed under a transactional cycle protected against syntax regressions:
 
 ```mermaid
 flowchart TD
-    G1["1. Generar VHost Nginx<br/>Upstream dinamico"] --> T1{"2. Prueba Sintactica<br/>nginx -t"}
+    G1["1. Generate Nginx VHost<br/>Dynamic upstream assignment"] --> T1{"2. Syntax Validation<br/>nginx -t"}
     
-    T1 -->|"Exit 0 (Valido)"| RELOAD["3. Recarga Atomica<br/>nginx -s reload (Cero Downtime)"]
-    T1 -->|"Exit > 0 (Error)"| ROLLBACK["4. Rollback Inmediato<br/>Restaura version previa"]
+    T1 -->|"Exit 0 (Valid)"| RELOAD["3. Atomic Hot Reload<br/>nginx -s reload (Zero Downtime)"]
+    T1 -->|"Exit > 0 (Error)"| ROLLBACK["4. Immediate Rollback<br/>Restore previous configuration"]
 ```
 
-1. Generacion del bloque de configuracion Nginx asignando el upstream a variables en tiempo de ejecucion.
-2. Comprobacion sintactica aislada en el contenedor:
+1. Generation of the Nginx configuration block assigning upstream hosts to runtime variables.
+2. Isolated syntax verification within the running container:
    ```bash
    docker exec stratum-org-<org>-nginx nginx -t
    ```
-3. Si la prueba falla, el sistema ejecuta un rollback inmediato restaurando el archivo previo sin interrumpir el servicio activo.
-4. Aplicacion en caliente sin caida de conexiones activas:
+3. If verification fails, an immediate rollback restores the previous configuration without service interruption.
+4. Hot configuration reload with zero connection downtime:
    ```bash
    docker exec stratum-org-<org>-nginx nginx -s reload
    ```
 
-### 3.4. Auditoria Preventiva del Sistema (`stratum doctor`)
-El plano de control implementa una rutina de diagnostico en 10 puntos de control:
-* Existencia y permisos del socket `/var/run/docker.sock`.
-* Parametro del kernel `vm.overcommit_memory = 1` (requerido para estabilidad de Redis).
-* Permisos de solo lectura (`chmod 600`) en archivos de variables de entorno `.env`.
-* Verificacion de la directiva `internal: true` en todas las redes de persistencia y de inquilino.
-* Verificacion de ausencia de directivas `ports:` abiertas al host fisico.
-* Estado de salud y conectividad de `stratum-dmz-anchor`.
+### 3.4. Preventive System Health Audit (`stratum doctor`)
+The administrative control plane implements a diagnostic routine covering 10 inspection checkpoints:
+* Verification of `/var/run/docker.sock` existence and permissions.
+* Kernel parameter `vm.overcommit_memory = 1` enforcement (required for Redis memory allocation).
+* Read-only file permissions (`chmod 600`) on `.env` environment files.
+* Verification of `internal: true` flags across all persistence and tenant subnets.
+* Absence of `ports:` directives bound directly to physical host interfaces.
+* Health state and connectivity of `stratum-dmz-anchor`.
 
 ---
 
-## 4. Contratos de Contenedores y Estandar de Ejecucion
+## 4. Container Execution Standards and Security Directives
 
-Todos los contenedores de la suite deben respetar estrictamente las directivas de seguridad en sus descriptores Docker Compose:
+All containers within the Stratum suite adhere strictly to the following security directives in Docker Compose descriptors:
 
-1. **PID 1 Supervisado:** Uso obligatorio de `tini` o `init: true` para recolectar procesos zombies derivados de ejecuciones de scripts o compiladores.
-2. **Capacidades Minimas del Kernel:** `cap_drop: [ALL]`. Queda vetado el uso de contenedores en modo privilegiado (`privileged: true`).
-3. **Bloqueo de Escalada:** `security_opt: ["no-new-privileges:true"]`.
-4. **Sistemas de Archivos Inmutables:** Sistema de archivos raiz en modo lectura (`read_only: true`). Todos los directorios volatiles (`/tmp`, `/run`) se montan exclusivamente sobre memoria RAM (`tmpfs`).
-5. **Usuarios No Privilegiados:** Todo proceso de aplicacion corre bajo UIDs especificos (ej. `appuser`, `node`, `spring`, `www-data`, `nobody`).
+1. **Supervised PID 1:** Mandatory use of `tini` or `init: true` to prevent orphan zombie processes generated by script or compiler executions.
+2. **Kernel Capability Dropping:** Mandatory `cap_drop: [ALL]`. Privileged container mode (`privileged: true`) is prohibited.
+3. **Privilege Escalation Prevention:** Enforced `security_opt: ["no-new-privileges:true"]`.
+4. **Immutable Root Filesystems:** Root filesystems configured in read-only mode (`read_only: true`). All volatile directories (`/tmp`, `/run`) are mounted strictly in RAM via `tmpfs`.
+5. **Non-Root Execution:** All application processes run under dedicated unprivileged UIDs (e.g., `appuser`, `node`, `spring`, `www-data`, `nobody`).

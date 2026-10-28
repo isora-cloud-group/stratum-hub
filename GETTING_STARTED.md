@@ -1,80 +1,80 @@
-# Guia de Operacion y Despliegue: Stratum Platform
+# Deployment and Operations Guide: Stratum Platform
 
-> Procedimiento paso a paso para desplegar y operar la arquitectura **Stratum Sovereign Multi-Tenant** en servidores Linux bare-metal o instancias dedicadas.
+> Step-by-step procedure for deploying and operating the **Stratum Sovereign Multi-Tenant** architecture on bare-metal Linux servers or dedicated instances.
 
 ```mermaid
 flowchart TD
-    F1["1. Host y Requisitos<br/>Linux 64-bit y Docker Engine"] --> F2["2. Stratum Core<br/>Subred DMZ y Proxy L4"]
-    F2 --> F3["3. Stratum CLI<br/>Plano de Control Nativo"]
-    F3 --> F4["4. Stratum Org<br/>Isla Inquilino y Redis Local"]
-    F4 --> F5["5. Tier 3 Workloads<br/>Aplicaciones y Auditoria"]
+    F1["1. Host Requirements<br/>64-bit Linux & Docker Engine"] --> F2["2. Stratum Core<br/>DMZ Subnet & L4 Proxy"]
+    F2 --> F3["3. Stratum CLI<br/>Native Control Plane"]
+    F3 --> F4["4. Stratum Org<br/>Tenant Island & Local Redis"]
+    F4 --> F5["5. Tier 3 Workloads<br/>Applications & Health Audit"]
 ```
 
-Acceso rapido por etapa:
-* [Requisitos Previos del Servidor Host](#1-requisitos-previos-del-servidor-host)
-* [Fase 1: Despliegue de la Plataforma Base (Stratum Core)](#2-fase-1-despliegue-de-la-plataforma-base-stratum-core)
-* [Fase 2: Configuracion del Plano de Control (Stratum CLI)](#3-fase-2-configuracion-del-plano-de-control-stratum-cli)
-* [Fase 3: Aprovisionamiento de una Isla de Organizacion (Stratum Org)](#4-fase-3-aprovisionamiento-de-una-isla-de-organizacion-stratum-org)
-* [Fase 4: Despliegue de Cargas de Trabajo (Tier 3 Workloads)](#5-fase-4-despliegue-de-cargas-de-trabajo-tier-3-workloads)
-* [Fase 5: Verificacion y Auditoria de Aislamiento](#6-fase-5-verificacion-y-auditoria-de-aislamiento)
+Quick navigation by stage:
+* [1. Host Server Prerequisites](#1-host-server-prerequisites)
+* [2. Phase 1: Base Platform Deployment (Stratum Core)](#2-phase-1-base-platform-deployment-stratum-core)
+* [3. Phase 2: Control Plane Configuration (Stratum CLI)](#3-phase-2-control-plane-configuration-stratum-cli)
+* [4. Phase 3: Tenant Island Provisioning (Stratum Org)](#4-phase-3-tenant-island-provisioning-stratum-org)
+* [5. Phase 4: Workload Deployment (Tier 3 Workloads)](#5-phase-4-workload-deployment-tier-3-workloads)
+* [6. Phase 5: Isolation Verification and Audit](#6-phase-5-isolation-verification-and-audit)
 
 ---
 
-## 1. Requisitos Previos del Servidor Host
+## 1. Host Server Prerequisites
 
-Antes de iniciar la instalacion, asegurese de que el host cumple con los requerimientos minimos:
+Before initiating deployment, verify that the host server satisfies the minimum baseline:
 
-* **Sistema Operativo:** Linux de 64 bits (Debian 12+, Ubuntu 22.04 LTS / 24.04 LTS, Rocky Linux 9+).
-* **Motor de Contenedores:** Docker Engine 24.0+ y Docker Compose Plugin v2.20+.
-* **Entorno de Administracion:** Python 3.10+ (requerido unicamente para ejecutar `stratum-cli`).
-* **Kernel & Red:** Soporte para cgroups v2, modulo `bridge` activo y directivas `net.ipv4.ip_forward=1`.
-* **Regla Fundamental:** Cero servicios escuchando en los puertos publicos 80, 443 o puertos de base de datos directamente sobre las interfaces fisicas del servidor.
+* **Operating System:** 64-bit Linux distribution (Debian 12+, Ubuntu 22.04 LTS / 24.04 LTS, Rocky Linux 9+).
+* **Container Engine:** Docker Engine 24.0+ and Docker Compose Plugin v2.20+.
+* **Runtime Environment:** Python 3.10+ (required exclusively for executing `stratum-cli`).
+* **Kernel & Networking:** Linux cgroups v2 support, active `bridge` module, and `net.ipv4.ip_forward=1` enabled.
+* **Security Invariant:** Zero services listening on public ports 80, 443, or database ports bound to physical host interfaces (`0.0.0.0`).
 
 ---
 
-## 2. Fase 1: Despliegue de la Plataforma Base (Stratum Core)
+## 2. Phase 1: Base Platform Deployment (Stratum Core)
 
-La infraestructura perimetral y el clúster de persistencia residen en el repositorio [`stratum-core`](https://github.com/isora-cloud-group/stratum-core).
+Perimeter ingress infrastructure and the central persistence cluster reside in the [`stratum-core`](https://github.com/isora-cloud-group/stratum-core) repository.
 
-### 2.1. Clonacion y Estructura
+### 2.1. Repository Clone and Directory Layout
 ```bash
 git clone https://github.com/isora-cloud-group/stratum-core.git /opt/stratum-core
 cd /opt/stratum-core
 ```
 
-### 2.2. Inicializar la Red DMZ y Centinela
-La red `stratum_dmz` sirve como canal intermedio de conexion entre el gateway exterior y los routers frontales de cada inquilino.
+### 2.2. Initialize DMZ Subnet and Sentinel Anchor
+The `stratum_dmz` network serves as the intermediary channel between external ingress gateways and tenant front routers.
 ```bash
 cd /opt/stratum-core/dmz
 docker compose up -d
 ```
-Verifique que el contenedor `stratum-dmz-anchor` se encuentre activo bajo el usuario no root `nobody`:
+Verify that the `stratum-dmz-anchor` container is running under unprivileged user `nobody` (UID 65534):
 ```bash
 docker compose ps
 ```
 
-### 2.3. Inicializar la Capa de Persistencia y Proxy L4
-El subsistema de persistencia (`database/`) levanta PostgreSQL 16 y MongoDB 7.0 sobre la red ciega `stratum_database_internal`, exponiendo unicamente los puertos virtuales hacia la DMZ mediante el proxy TCP Stream de Nginx.
+### 2.3. Initialize Persistence Cluster and L4 Proxy
+The persistence subsystem (`database/`) deploys PostgreSQL 16 and MongoDB 7.0 on the blind network `stratum_database_internal`, exposing virtual stream ports exclusively to the DMZ via the Nginx L4 proxy.
 ```bash
 cd /opt/stratum-core/database
 cp .env.example .env
-# Configure contraseñas maestras y variables administrativas
+# Configure master credentials and administrative environment variables
 docker compose up -d
 ```
 
-Verifique que la red interna sea estrictamente ciega (`internal: true`):
+Verify that the persistence network is configured as strictly blind (`internal: true`):
 ```bash
 docker network inspect stratum_database_internal --format '{{.Internal}}'
-# Salida esperada: true
+# Expected output: true
 ```
 
 ---
 
-## 3. Fase 2: Configuracion del Plano de Control (Stratum CLI)
+## 3. Phase 2: Control Plane Configuration (Stratum CLI)
 
-[`stratum-cli`](https://github.com/isora-cloud-group/stratum-cli) no requiere dependencias de terceros; funciona de forma nativa utilizando la biblioteca estandar de Python.
+[`stratum-cli`](https://github.com/isora-cloud-group/stratum-cli) requires zero third-party dependencies; it operates natively using the Python standard library.
 
-### 3.1. Instalacion Local
+### 3.1. Local Installation
 ```bash
 git clone https://github.com/isora-cloud-group/stratum-cli.git /opt/stratum-cli
 cd /opt/stratum-cli
@@ -82,88 +82,87 @@ chmod +x install.sh
 sudo ./install.sh
 ```
 
-### 3.2. Diagnostico del Sistema (Health Check)
-Ejecute el comando de diagnostico para comprobar que los demonios, subredes e invariantes de seguridad estan activos:
+### 3.2. Diagnostic Health Check (`stratum doctor`)
+Execute system diagnostics to verify daemons, subnets, and security invariants:
 ```bash
 stratum doctor
 ```
 
 ---
 
-## 4. Fase 3: Aprovisionamiento de una Isla de Organizacion (Stratum Org)
+## 4. Phase 3: Tenant Island Provisioning (Stratum Org)
 
-Cada cliente u organizacion opera dentro de su propio perímetro sovereign materializado por [`stratum-org`](https://github.com/isora-cloud-group/stratum-org).
+Each tenant organization operates within a dedicated sovereign perimeter provisioned by [`stratum-org`](https://github.com/isora-cloud-group/stratum-org).
 
-### 4.1. Crear una Organizacion via CLI
-Para aprovisionar la organizacion `empresa-alfa`:
+### 4.1. Provision Tenant via CLI
+To provision a tenant identified as `enterprise-alpha`:
 ```bash
-stratum org create empresa-alfa
+stratum org create enterprise-alpha
 ```
-Este comando ejecuta automaticamente:
-1. Validacion del identificador contra la expresion determinista `^[a-z0-9]+(?:-[a-z0-9]+)*$`.
-2. Creacion de la subred privada `stratum_empresa-alfa_internal` (`internal: true`).
-3. Generacion de certificados internos y configuracion de Nginx con reenvio split-horizon.
-4. Generacion de secretos criptograficos mediante la esponja de entropia fisica HMAC-SHA512.
-5. Despliegue del contenedor Redis 7 local dedicado y el router frontal dual-homed.
+This automated command performs:
+1. Identifier format validation against the deterministic pattern `^[a-z0-9]+(?:-[a-z0-9]+)*$`.
+2. Creation of the private tenant bridge network `stratum_enterprise-alpha_internal` (`internal: true`).
+3. Internal certificate generation and Nginx configuration with split-horizon routing.
+4. Cryptographic secret generation using the HMAC-SHA512 physical entropy sponge.
+5. Deployment of the dedicated local Redis 7 container and dual-homed front router.
 
-### 4.2. Aprovisionar Base de Datos para la Organizacion
+### 4.2. Provision Tenant Database Schemas
 ```bash
-stratum db create empresa-alfa --type postgres
+stratum db create enterprise-alpha --type postgres
 ```
-Este comando crea el esquema y usuario restringido en PostgreSQL central, concediendo acceso unicamente a la base de datos `db_empresa_alfa` con minimos privilegios.
+This command initializes the restricted schema and user on central PostgreSQL, granting access exclusively to `db_enterprise_alpha` under least privilege.
 
 ---
 
-## 5. Fase 4: Despliegue de Cargas de Trabajo (Tier 3 Workloads)
+## 5. Phase 4: Workload Deployment (Tier 3 Workloads)
 
-Las aplicaciones cliente se despliegan utilizando los repositorios de plantilla correspondientes al lenguaje deseado.
+Tenant workloads deploy using official boilerplate repositories corresponding to the required runtime.
 
-### 5.1. Ejemplo: Despliegue de Backend Python (FastAPI)
+### 5.1. Example: Python Backend Deployment (FastAPI)
 ```bash
-git clone https://github.com/isora-cloud-group/stratum-python.git /opt/workloads/empresa-alfa-api
-cd /opt/workloads/empresa-alfa-api
+git clone https://github.com/isora-cloud-group/stratum-python.git /opt/workloads/enterprise-alpha-api
+cd /opt/workloads/enterprise-alpha-api
 cp .env.example .env
 ```
 
-Configure el archivo `.env` vinculando la carga a la organizacion:
+Configure `.env` binding the workload to the tenant island:
 ```env
-TENANT_ORG=empresa-alfa
+TENANT_ORG=enterprise-alpha
 APP_PORT=8000
 DB_HOST=stratum-database-nginx
 DB_PORT=5432
-DB_NAME=db_empresa_alfa
-DB_USER=usr_empresa_alfa
-DB_PASSWORD=<secreto_generado_por_cli>
+DB_NAME=db_enterprise_alpha
+DB_USER=usr_enterprise_alpha
+DB_PASSWORD=<cli_generated_secret>
 REDIS_HOST=redis
 REDIS_PORT=6379
 ```
 
-Inicie el servicio:
+Start the workload:
 ```bash
 docker compose up -d --build
 ```
 
 ---
 
-## 6. Fase 5: Verificacion y Auditoria de Aislamiento
+## 6. Phase 5: Isolation Verification and Audit
 
-Compruebe que el aislamiento de red por diseno es efectivo:
+Validate that network isolation invariants hold across all perimeters:
 
-1. **Intento de Acceso a Internet desde la Base de Datos (Debe Fallar):**
+1. **Verify Database Internet Isolation (Must Fail):**
    ```bash
-   docker exec -it stratum-database-core-postgres ping -c 2 1.1.1.1 || echo "Aislamiento verificado: Red ciega sin egress"
+   docker exec -it stratum-database-core-postgres ping -c 2 1.1.1.1 || echo "Isolation verified: Blind network without internet egress"
    ```
 
-2. **Intento de Comunicacion Inter-Tenant (Debe Fallar):**
-   Intentar conectarse desde la carga de trabajo de `empresa-alfa` hacia la red de `empresa-beta`:
+2. **Verify Inter-Tenant Confinement (Must Fail):**
+   Attempt connection from `enterprise-alpha` workload to `enterprise-beta` network:
    ```bash
-   docker exec -it stratum-empresa-alfa-api ping -c 2 stratum-org-empresa-beta-nginx || echo "Aislamiento verificado: Imposible resolver o alcanzar inquilino adyacente"
+   docker exec -it stratum-enterprise-alpha-api ping -c 2 stratum-org-enterprise-beta-nginx || echo "Isolation verified: Neighboring tenant unreachable"
    ```
 
-3. **Verificacion de Puertos en el Host:**
-   Compruebe con `ss` o `netstat` que el host fisico no tiene puertos de servicio abiertos:
+3. **Verify Host Port Bindings:**
+   Confirm zero listening application ports on the host physical interfaces:
    ```bash
    sudo ss -tulpn | grep -E ':(5432|27017|6379|8000|8080)'
-   # La salida debe ser completamente nula.
+   # Expected output: completely empty
    ```
-

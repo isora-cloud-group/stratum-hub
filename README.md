@@ -41,11 +41,11 @@ Stratum is a sovereign reference architecture and container engineering suite de
 
 ## 2. Getting Started
 
-The following decision tree guides component selection based on deployment goals:
+The following decision tree categorizes components by deployment objective:
 
 ```mermaid
 flowchart TD
-    START(["What do you want to build or deploy?"])
+    START(["System Deployment Target"])
     
     START -->|"Base Infrastructure"| CORE["stratum-core<br/>Host Foundation & Persistence"]
     START -->|"Management & Automation"| CLI["stratum-cli<br/>Control Plane CLI"]
