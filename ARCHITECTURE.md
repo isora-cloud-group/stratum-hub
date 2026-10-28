@@ -101,14 +101,34 @@ rs.reconfig({
 Esto garantiza compatibilidad transparente para controladores cliente de Node.js, Python, Java y PHP sin requerir acceso de red directo al contenedor primario.
 
 ### 3.2. Cosecha de Entropia Fisica Multicapa (`entropy.py`)
-El generador criptografico integrado en `stratum-cli` erradica el riesgo de colision de claves o generacion determinista en entornos virtualizados. El algoritmo combina:
+El generador criptografico integrado en `stratum-cli` erradica el riesgo de colision de claves o generacion determinista en entornos virtualizados. El algoritmo combina cuatro fuentes fisicas e independientes:
+
+```mermaid
+flowchart LR
+    S1["🎲 CSPRNG del Kernel<br/><code>os.urandom</code> / <code>secrets</code>"] --> SPONGE["🧽 <b>Esponja Criptográfica</b><br/>Compresión HMAC-SHA512"]
+    S2["⏱️ Micro-Jitter CPU<br/><code>time.perf_counter_ns()</code>"] --> SPONGE
+    S3["🧠 Offset de Memoria ASLR<br/>Direcciones de Heap dinámicas"] --> SPONGE
+    S4["🌡️ Fluctuaciones Térmicas<br/>Contador diferencial de ciclos"] --> SPONGE
+    
+    SPONGE --> OUT["🔑 <b>Secreto de Alta Densidad</b><br/>24 caracteres alfanuméricos<br/><i>(Cero colisión en virtualización)</i>"]
+```
+
 1. CSPRNG nativo del sistema operativo (`os.urandom` / `secrets`).
 2. Jitter y fluctuaciones de micro-temporizacion del reloj de la CPU en nanosegundos (`time.perf_counter_ns()`).
 3. Variabilidad del espacio de memoria (direcciones de objetos en memoria dinamica afectadas por ASLR).
 4. Compresion criptografica en esponja mediante **HMAC-SHA512**, produciendo cadenas aleatorias alfanumericas de alta densidad.
 
 ### 3.3. Enrutamiento Atomico L7 y Prevencion de Inyeccion
-Las rutas perimetrales generadas dinamicamente para cada inquilino se gestionan bajo un ciclo transaccional:
+Las rutas perimetrales generadas dinamicamente para cada inquilino se gestionan bajo un ciclo transaccional protegido contra regresiones sintácticas:
+
+```mermaid
+flowchart TD
+    G1["1. Generar Virtual Host Nginx<br/><i>Asignación upstream dinámica</i>"] --> T1{"2. Prueba Sintáctica Aislada<br/><code>docker exec ... nginx -t</code>"}
+    
+    T1 -->|"Sintaxis Válida (Exit 0) ✅"| RELOAD["3. Recarga en Caliente Atómica<br/><code>docker exec ... nginx -s reload</code><br/><b>Cero downtime de conexiones</b>"]
+    T1 -->|"Error Detectado (Exit > 0) ❌"| ROLLBACK["4. Rollback Inmediato<br/>Restauración de archivo previo<br/><b>Sin impacto en el servicio</b>"]
+```
+
 1. Generacion del bloque de configuracion Nginx asignando el upstream a variables en tiempo de ejecucion.
 2. Comprobacion sintactica aislada en el contenedor:
    ```bash

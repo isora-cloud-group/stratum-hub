@@ -52,33 +52,33 @@
 
 ## 2. 🧭 Árbol de Decisión: ¿Por Dónde Empiezo?
 
-Utiliza este mapa de navegación para identificar inmediatamente el componente exacto que requieres según tu necesidad:
+Utiliza este diagrama interactivo de decisión para orientarte e identificar inmediatamente el repositorio exacto que requieres según tu objetivo:
 
-```text
-¿Qué deseas lograr en la plataforma Stratum?
-│
-├── 1. "Voy a montar la infraestructura base del servidor por primera vez"
-│   └── ➔ Despliega stratum-core
-│          (Configura la DMZ perimetral, túneles de borde y el clúster central de persistencia L4).
-│          Repositorio: https://github.com/isora-cloud-group/stratum-core
-│
-├── 2. "Necesito administrar la plataforma, automatizar tareas o aprovisionar inquilinos"
-│   └── ➔ Instala stratum-cli
-│          (CLI en Python puro sin dependencias externas: `stratum org create`, `stratum db create`, `stratum doctor`).
-│          Repositorio: https://github.com/isora-cloud-group/stratum-cli
-│
-├── 3. "Quiero entender la plantilla de aislamiento para cada organización"
-│   └── ➔ Explora stratum-org
-│          (Enrutador Nginx dual-homed, red interna privada y Redis 7 dedicado por inquilino).
-│          Repositorio: https://github.com/isora-cloud-group/stratum-org
-│
-└── 4. "Quiero desplegar o migrar una carga de trabajo (Tier 3 Workload)"
-    ├── Backend Python (FastAPI / Django / Celery)  ➔ stratum-python
-    ├── Backend TypeScript / Node.js (Nest / Express) ➔ stratum-node
-    ├── Backend Java (Java 21 LTS / Spring Boot 3)   ➔ stratum-spring
-    ├── Aplicación PHP (PHP 8.4 / Laravel 11/12)     ➔ stratum-laravel
-    ├── Estudio Colaborativo LaTeX (TeX Live 2026)   ➔ overleaf-stratum
-    └── Nube Soberana y Almacenamiento Seguro        ➔ stratum-nextcloud
+```mermaid
+flowchart TD
+    START(["🎯 ¿Qué deseas lograr en la plataforma Stratum?"])
+    
+    START -->|"1. Infraestructura Base"| CORE["🏛️ stratum-core<br/><b>Tier 1: Base del Servidor</b><br/>• Red DMZ perimetral<br/>• Túneles Cloudflare Ingress<br/>• Persistencia ciega L4 (PostgreSQL/Mongo)"]
+    START -->|"2. Administrar & Automatizar"| CLI["⚡ stratum-cli<br/><b>Plano de Control CLI</b><br/>• Orquestación sin dependencias<br/>• Aprovisionamiento determinista<br/>• Comandos: org create, db create, doctor"]
+    START -->|"3. Conocer Plantilla de Inquilino"| ORG["🛡️ stratum-org<br/><b>Tier 2: Isla de Organización</b><br/>• Router Nginx frontal dual-homed<br/>• Red interna privada blindada<br/>• Redis 7 soberano local dedicado"]
+    START -->|"4. Desplegar una Aplicación"| APPS{"📦 Selecciona el Stack<br/>(Tier 3 Workloads)"}
+    
+    APPS -->|"Python"| W_PY["stratum-python<br/>FastAPI / Django / Celery"]
+    APPS -->|"Node.js"| W_JS["stratum-node<br/>NestJS / Express / TypeScript"]
+    APPS -->|"Java"| W_JV["stratum-spring<br/>Spring Boot 3 / Java 21 LTS"]
+    APPS -->|"PHP"| W_PHP["stratum-laravel<br/>Laravel 11/12 / PHP 8.4"]
+    APPS -->|"LaTeX"| W_TEX["overleaf-stratum<br/>TeX Live 2026 Scheme-Full"]
+    APPS -->|"Cloud"| W_NC["stratum-nextcloud<br/>Almacenamiento Soberano"]
+
+    click CORE "https://github.com/isora-cloud-group/stratum-core" "Ir al repositorio stratum-core"
+    click CLI "https://github.com/isora-cloud-group/stratum-cli" "Ir al repositorio stratum-cli"
+    click ORG "https://github.com/isora-cloud-group/stratum-org" "Ir al repositorio stratum-org"
+    click W_PY "https://github.com/isora-cloud-group/stratum-python" "Ir al repositorio stratum-python"
+    click W_JS "https://github.com/isora-cloud-group/stratum-node" "Ir al repositorio stratum-node"
+    click W_JV "https://github.com/isora-cloud-group/stratum-spring" "Ir al repositorio stratum-spring"
+    click W_PHP "https://github.com/isora-cloud-group/stratum-laravel" "Ir al repositorio stratum-laravel"
+    click W_TEX "https://github.com/isora-cloud-group/overleaf-stratum" "Ir al repositorio overleaf-stratum"
+    click W_NC "https://github.com/isora-cloud-group/stratum-nextcloud" "Ir al repositorio stratum-nextcloud"
 ```
 
 ---
@@ -210,27 +210,18 @@ Stratum mitiga los vectores de ataque mediante restricciones de infraestructura:
 
 ## 7. 🌐 Ecosistema Soberano Isora Cloud Group
 
-Stratum forma parte de la suite tecnológica soberana operada por **Isora Cloud Group**:
+Stratum forma parte de la suite tecnológica soberana operada por **Isora Cloud Group**, donde la infraestructura de servidores y la seguridad de endpoints se articulan de forma complementaria:
 
-```text
-                               ┌─────────────────────────────────────────┐
-                               │            ISORA CLOUD GROUP            │
-                               │        Sovereign Solutions Hub          │
-                               └────────────────────┬────────────────────┘
-                                                    │
-                         ┌──────────────────────────┴──────────────────────────┐
-                         │                                                     │
-                         ▼                                                     ▼
-           ┌───────────────────────────┐                         ┌───────────────────────────┐
-           │          STRATUM          │                         │        SENTINEL-IT        │
-           │  Sovereign Multi-Tenant   │                         │ Windows Endpoint Hygiene  │
-           │     Application Suite     │                         │   & Compliance Audit      │
-           └─────────────┬─────────────┘                         └─────────────┬─────────────┘
-                         │                                                     │
-           • Servidores Linux & Cloudflare Edge                   • Puestos de trabajo Windows 10/11/Server
-           • Aislamiento de Red L4/L7 en Contenedores             • Auditoría automatizada ISO 27001 & ISO 20000-1
-           • Persistencia Blindada & Redis Local                 • BitLocker, Antimalware, Integridad DISM, SIEM
-           • https://github.com/isora-cloud-group/stratum-hub     • https://github.com/sandra-puerto/Sentinel-IT
+```mermaid
+flowchart TD
+    ICG["🏢 <b>ISORA CLOUD GROUP</b><br/>Sovereign Tech Solutions Hub<br/><i>https://isora.com.co</i>"]
+    
+    ICG -->|"Infraestructura Servidores & Contenedores"| STRATUM["🌐 <b>STRATUM SOVEREIGN SUITE</b><br/>Multi-Tenant Application Infrastructure<br/>• Servidores Linux & Cloudflare Edge Ingress<br/>• Aislamiento Topológico L4/L7 en Contenedores<br/>• Bases de Datos Ciegas & Redis 7 Local Dedicado<br/>• <i>Plataforma para Aplicaciones & SaaS Multi-Tenant</i>"]
+    
+    ICG -->|"Higiene & Cumplimiento en Endpoints"| SENTINEL["🛡️ <b>SENTINEL-IT SUITE</b><br/>Windows Endpoint Hygiene & Compliance<br/>• Estaciones de Trabajo Windows 10/11 y Server<br/>• Auditoría Automatizada ISO 27001 & ISO 20000-1<br/>• BitLocker, Antimalware, Integridad DISM, SIEM<br/>• <i>Plataforma para Puestos de Trabajo Corporativos</i>"]
+
+    click STRATUM "https://github.com/isora-cloud-group/stratum-hub" "Ver Stratum Hub"
+    click SENTINEL "https://github.com/sandra-puerto/Sentinel-IT" "Ver Sentinel-IT"
 ```
 
 ---

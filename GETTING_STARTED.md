@@ -2,6 +2,14 @@
 
 > Procedimiento paso a paso para desplegar y operar la arquitectura **Stratum Sovereign Multi-Tenant** en servidores Linux bare-metal o instancias dedicadas.
 
+```mermaid
+flowchart LR
+    F1["<b>Fase 1</b><br/>Pre-requisitos Host<br/><i>Kernel 5.15+ & Docker</i>"] --> F2["<b>Fase 2</b><br/>Stratum Core<br/><i>DMZ & Proxy L4</i>"]
+    F2 --> F3["<b>Fase 3</b><br/>Stratum CLI<br/><i>Control Plane Nativo</i>"]
+    F3 --> F4["<b>Fase 4</b><br/>Stratum Org<br/><i>Isla Inquilino & Redis</i>"]
+    F4 --> F5["<b>Fase 5</b><br/>Workloads & Auditoría<br/><i>Tier 3 & Health Check</i>"]
+```
+
 ---
 
 ## 1. Requisitos Previos del Servidor Host
