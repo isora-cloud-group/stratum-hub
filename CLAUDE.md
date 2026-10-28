@@ -37,7 +37,7 @@ Al referenciar repositorios del ecosistema Stratum en documentacion o respuestas
 ---
 
 ## 4. Tono y Directivas de Estilo
-* **Ingenieria Sobria y Profesional:** No utilizar emoticonos, iconos informales ni redaccion coloquial que transmita sensacion de software experimental o generado superficialmente. Inspirarse en la documentacion institucional de Sentinel-IT.
+* **Ingenieria Sobria y Profesional:** No utilizar emoticonos, iconos informales ni redaccion coloquial que transmita sensacion de software experimental o generado superficialmente. Mantener un estricto tono de ingenieria institucional de alto nivel.
 * **Precisión Terminologica:** Utilizar terminos de ingenieria formales: *Aislamiento por diseno*, *Topologia Zero-Trust de 4 Capas*, *Mediacion L4 Stream*, *Hardening de Kernel*, *Contenedores Rootless*, *Gobernanza de Infraestructura*.
 
 ---

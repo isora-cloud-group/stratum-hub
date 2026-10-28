@@ -27,7 +27,7 @@
 [**4. Directorio de Repositorios**](#4-directorio-de-repositorios-del-ecosistema) •
 [**5. Decisiones (ADRs)**](#5-decisiones-arquitectónicas-registradas-adrs) •
 [**6. STRIDE & Cumplimiento**](#6-modelo-de-amenazas-stride-y-cumplimiento) •
-[**7. Ecosistema ICG**](#7-ecosistema-soberano-isora-cloud-group) •
+[**7. Jerarquía de Módulos**](#7-jerarquía-y-relación-entre-módulos-stratum) •
 [**8. Servicios & Adopción**](#8-adopción-empresarial-servicios-y-soporte) •
 [**9. Autores & Gobernanza**](#9-autores-gobernanza-y-licencia)
 
@@ -208,20 +208,27 @@ Stratum mitiga los vectores de ataque mediante restricciones de infraestructura:
 
 ---
 
-## 7. 🌐 Ecosistema Soberano Isora Cloud Group
+## 7. 🔄 Jerarquía y Relación entre Módulos Stratum
 
-Stratum forma parte de la suite tecnológica soberana operada por **Isora Cloud Group**, donde la infraestructura de servidores y la seguridad de endpoints se articulan de forma complementaria:
+Todos los componentes del ecosistema **Stratum** se articulan bajo una estricta jerarquía de dependencias en una sola dirección (ascendente), garantizando que las cargas de trabajo consuman los servicios sin introducir acoplamientos circulares:
 
 ```mermaid
 flowchart TD
-    ICG["🏢 <b>ISORA CLOUD GROUP</b><br/>Sovereign Tech Solutions Hub<br/><i>https://isora.com.co</i>"]
+    HUB["🌐 <b>stratum-hub</b><br/><i>Directorio Central & Especificación Maestra</i>"]
     
-    ICG -->|"Infraestructura Servidores & Contenedores"| STRATUM["🌐 <b>STRATUM SOVEREIGN SUITE</b><br/>Multi-Tenant Application Infrastructure<br/>• Servidores Linux & Cloudflare Edge Ingress<br/>• Aislamiento Topológico L4/L7 en Contenedores<br/>• Bases de Datos Ciegas & Redis 7 Local Dedicado<br/>• <i>Plataforma para Aplicaciones & SaaS Multi-Tenant</i>"]
+    HUB -->|"Gobierna & Documenta"| CLI["⚡ <b>stratum-cli</b><br/><i>Plano de Control Administrativo (Python stdlib)</i>"]
     
-    ICG -->|"Higiene & Cumplimiento en Endpoints"| SENTINEL["🛡️ <b>SENTINEL-IT SUITE</b><br/>Windows Endpoint Hygiene & Compliance<br/>• Estaciones de Trabajo Windows 10/11 y Server<br/>• Auditoría Automatizada ISO 27001 & ISO 20000-1<br/>• BitLocker, Antimalware, Integridad DISM, SIEM<br/>• <i>Plataforma para Puestos de Trabajo Corporativos</i>"]
+    CLI -->|"1. Despliega Base"| CORE["🏛️ <b>stratum-core (Tier 1)</b><br/><i>DMZ + Proxy L4 Stream + Red Ciega BD</i>"]
+    CLI -->|"2. Aprovisiona Isla"| ORG["🛡️ <b>stratum-org (Tier 2)</b><br/><i>Router Nginx Dual-Homed + Redis 7 Soberano</i>"]
+    CLI -->|"3. Conecta Cargas"| T3["📦 <b>Tier 3 Cargas de Trabajo</b><br/><i>Python, Node.js, Spring, Laravel, Overleaf, Nextcloud</i>"]
+    
+    T3 -.->|"Split-Horizon TCP Stream"| ORG
+    ORG -.->|"Mediación L4 via DMZ"| CORE
 
-    click STRATUM "https://github.com/isora-cloud-group/stratum-hub" "Ver Stratum Hub"
-    click SENTINEL "https://github.com/sandra-puerto/Sentinel-IT" "Ver Sentinel-IT"
+    click HUB "https://github.com/isora-cloud-group/stratum-hub" "Ver stratum-hub"
+    click CLI "https://github.com/isora-cloud-group/stratum-cli" "Ver stratum-cli"
+    click CORE "https://github.com/isora-cloud-group/stratum-core" "Ver stratum-core"
+    click ORG "https://github.com/isora-cloud-group/stratum-org" "Ver stratum-org"
 ```
 
 ---
