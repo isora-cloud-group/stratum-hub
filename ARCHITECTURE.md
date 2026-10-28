@@ -2,7 +2,7 @@
 
 > **Documento de Especificacion Tecnica Oficial y Registro Arquitectonico**  
 > *Version 2.0.0 — Isora Cloud Group (ICG)*  
-> *Autora y Titular: Sandra Gabriela Puerto Torres (SGPT) ([GitHub: @sandra-puerto](https://github.com/sandra-puerto) · [LinkedIn](https://www.linkedin.com/in/sandra-puerto/)) — Protegido conforme a la Ley 23 de 1982 y Decisión Andina 351 (DNDA Colombia)*
+> *Autora y Titular: Sandra Gabriela Puerto Torres (SGPT) ([GitHub: @sandra-puerto](https://github.com/sandra-puerto) · [LinkedIn](https://www.linkedin.com/in/sandra-puerto/)) — Obra Científica y Técnica Inédita protegida conforme a la Ley 23 de 1982 y Decisión Andina 351 (DNDA Colombia)*
 
 ---
 

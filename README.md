@@ -46,7 +46,7 @@
 3. **Frente a Puertos Host Expuestos:**  
    Stratum opera bajo la regla estricta **Zero Host Ports**: ningún contenedor publica puertos directamente en la interfaz del servidor (`0.0.0.0`). Todo el tráfico llega exclusivamente a través de túneles cifrados salientes de borde (Cloudflare Zero Trust).
 
-> **Marco de Propiedad Intelectual:** Conforme a la **Ley 23 de 1982** y la **Decisión Andina 351 de 1993**, Stratum está formalizada como obra técnica ante la **Dirección Nacional de Derecho de Autor (DNDA)** de Colombia, concebida y diseñada por **Sandra Gabriela Puerto Torres (SGPT)**, distribuida bajo la marca comercial **Isora Cloud Group (ICG)** e implementada mediante ingeniería agéntica de **Google Antigravity AI** y **DeepSeek**.
+> **Marco de Propiedad Intelectual:** Conforme a la **Ley 23 de 1982** y la **Decisión Andina 351 de 1993**, Stratum está formalizada como **Obra Científica y Técnica Inédita** ante la **Dirección Nacional de Derecho de Autor (DNDA)** de Colombia, concebida y diseñada por **Sandra Gabriela Puerto Torres (SGPT)**, distribuida bajo la marca comercial **Isora Cloud Group (ICG)** e implementada mediante ingeniería agéntica de **Google Antigravity AI** y **DeepSeek**.
 
 ---
 
@@ -250,6 +250,6 @@ Stratum se rige bajo un modelo de gobernanza que combina titularidad exclusiva d
 
 ### Registro Legal y Licencia
 
-* **Propiedad Intelectual:** Obra Científica y Técnica registrada conforme a la **Ley 23 de 1982** y la **Decisión Andina 351 de 1993** ante la **Dirección Nacional de Derecho de Autor (DNDA)** de la República de Colombia.
+* **Propiedad Intelectual:** **Obra Científica y Técnica Inédita** conforme a la **Ley 23 de 1982** y la **Decisión Andina 351 de 1993** ante la **Dirección Nacional de Derecho de Autor (DNDA)** de la República de Colombia. Titularidad exclusiva de derechos morales y patrimoniales reservada a nombre de Sandra Gabriela Puerto Torres (SGPT).
 * **Licencia de Código Abierto:** Distribuido bajo los términos de la **[Apache License, Version 2.0 (Apache-2.0)](LICENSE)**.
 * **Aviso de Marcas Nominativas:** Todos los nombres de productos y marcas de terceros (**Docker®**, **Cloudflare®**, **Nginx®**, **PostgreSQL®**, **MongoDB®**, **Redis®**, **Overleaf®**, **Nextcloud®**, **Python®**, **Linux®**) se mencionan únicamente con fines de identificación técnica bajo uso legítimo (*nominative fair use*).
